@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "emulation-sync"
+name = "directory-sync"
 version = "0.1.0"
 dependencies = [
  "home",
