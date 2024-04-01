@@ -31,8 +31,9 @@ fn main() {
         folders.insert(folder.name.clone(), folder);
     }
 
-    for folder in folders {
-        println!("{}: {}", folder.1.name, folder.1.path);
+    for folder_map in folders {
+        let folder = folder_map.1;
+        println!("{}: {}", folder.name, folder.path);
     }
 }
 
