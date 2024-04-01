@@ -1,15 +1,34 @@
+use serde::Deserialize;
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-// struct Folder {
-//     name: String,
-//     path: String,
-// }
+#[derive(Deserialize, Debug)]
+struct TomlConfig {
+    folders: HashMap<String, TomlFolder>,
+}
+
+#[derive(Deserialize, Debug)]
+struct TomlFolder {
+    path: String,
+}
+
+struct Folder {
+    name: String,
+    path: String,
+}
 
 fn main() {
-    println!("Hello World");
     let config = read_config().expect("Error Reading File");
-    println!("{config}");
+    let config: TomlConfig = toml::from_str(config.as_str()).expect("Error parsing config");
+
+    for toml_folder in config.folders {
+        let folder = Folder {
+            name: toml_folder.0,
+            path: toml_folder.1.path,
+        };
+        println!("{}: {}", folder.name, folder.path);
+    }
 }
 
 fn read_config() -> Option<String> {
