@@ -22,12 +22,17 @@ fn main() {
     let config = read_config().expect("Error Reading File");
     let config: TomlConfig = toml::from_str(config.as_str()).expect("Error parsing config");
 
+    let mut folders: HashMap<String, Folder> = HashMap::new();
     for toml_folder in config.folders {
         let folder = Folder {
             name: toml_folder.0,
             path: toml_folder.1.path,
         };
-        println!("{}: {}", folder.name, folder.path);
+        folders.insert(folder.name.clone(), folder);
+    }
+
+    for folder in folders {
+        println!("{}: {}", folder.1.name, folder.1.path);
     }
 }
 
