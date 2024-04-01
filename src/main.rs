@@ -19,7 +19,7 @@ struct Folder {
 }
 
 fn main() {
-    let config = read_config().expect("Error Reading File");
+    let config = read_config().expect("Error reading config");
     let config: TomlConfig = toml::from_str(config.as_str()).expect("Error parsing config");
 
     let mut folders: HashMap<String, Folder> = HashMap::new();
