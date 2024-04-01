@@ -1,3 +1,4 @@
+use home::home_dir;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
@@ -38,7 +39,8 @@ fn main() {
 }
 
 fn read_config() -> Option<String> {
-    let path = Path::new("/Users/auro/.dirsync.toml");
+    let home_dir = home_dir().expect("No Home Dir");
+    let path = Path::new(&home_dir.as_os_str()).join(".dirsync.toml");
     let path_exists = path.exists();
     let path_is_file = path.is_file();
 
