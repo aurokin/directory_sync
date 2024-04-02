@@ -9,6 +9,9 @@ use service::config::read_config;
 struct Args {
     #[arg(short, long)]
     cmd: String,
+
+    #[arg(short, long)]
+    folder: String,
 }
 
 fn main() {
