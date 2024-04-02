@@ -19,7 +19,15 @@ fn main() {
     let (ssh_servers, folders) = parse_config(config);
     let args = Args::parse();
     match args.cmd.as_str() {
-        "ls" => println!("MEOW - ls - MEOW"),
+        "ls" => {
+            println!("MEOW - ls - MEOW");
+            let folder = service::folder::get(args.folder.clone(), folders);
+            if let Some(folder) = folder {
+                service::ssh::ls(folder);
+            } else {
+                println!("Error locating folder: {}", args.folder)
+            }
+        }
         _ => println!("{:#?}\n{:#?}\n{:#?}\n", args, ssh_servers, folders),
     }
 }
