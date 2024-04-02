@@ -1,58 +1,12 @@
+mod model;
 use home::home_dir;
-use serde::Deserialize;
+use model::config::TomlConfig;
+use model::folder::Folder;
+use model::folder::FolderType;
 use std::collections::HashMap;
 use std::fs;
 use std::option::Option;
 use std::path::Path;
-
-#[derive(Deserialize, Debug)]
-struct TomlConfig {
-    folders: HashMap<String, TomlFolder>,
-    ssh: HashMap<String, TomlSshServer>,
-}
-
-#[derive(Deserialize, Debug)]
-struct TomlFolder {
-    path: String,
-    target: TomlType,
-    ssh_key: Option<(String)>,
-}
-
-#[derive(Deserialize, Debug)]
-struct TomlSshServer {
-    host: String,
-    name: String,
-}
-
-#[derive(Deserialize, Debug)]
-enum TomlType {
-    #[serde(alias = "local")]
-    Local,
-    #[serde(alias = "ssh")]
-    Ssh,
-}
-
-#[derive(Debug)]
-enum FolderType {
-    Local,
-    Ssh,
-}
-impl FolderType {
-    fn get_folder_type(toml_type: TomlType) -> Self {
-        let folder_type = match toml_type {
-            TomlType::Local => FolderType::Local,
-            TomlType::Ssh => FolderType::Ssh,
-        };
-
-        return folder_type;
-    }
-}
-#[derive(Debug)]
-struct Folder {
-    name: String,
-    path: String,
-    target: FolderType,
-}
 
 fn main() {
     let config = read_config().expect("Error reading config");
