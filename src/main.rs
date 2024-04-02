@@ -23,7 +23,7 @@ fn main() {
             println!("MEOW - ls - MEOW");
             let folder = service::folder::get(args.folder.clone(), folders);
             if let Some(folder) = folder {
-                service::ssh::ls(folder);
+                service::ssh::ls(folder, ssh_servers);
             } else {
                 println!("Error locating folder: {}", args.folder)
             }
