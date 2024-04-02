@@ -20,7 +20,6 @@ fn main() {
     let args = Args::parse();
     match args.cmd.as_str() {
         "ls" => {
-            println!("MEOW - ls - MEOW");
             let folder = service::folder::get(args.folder.clone(), folders);
             if let Some(folder) = folder {
                 service::ssh::ls(folder, ssh_servers);
