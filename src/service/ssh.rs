@@ -49,5 +49,4 @@ pub fn ls(folder: Folder, ssh_servers: HashMap<String, SshServer>) -> () {
             print!("{}", ls_output);
         }
     }
-    // Command::new("ssh").arg(format!("{}", folder.name))
 }
