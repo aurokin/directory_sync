@@ -2,4 +2,6 @@
 
 use crate::model::folder::Folder;
 
-pub fn ls(folder: Folder) -> () {}
+pub fn ls(folder: Folder) -> () {
+    println!("SSH - {:?}", folder);
+}
