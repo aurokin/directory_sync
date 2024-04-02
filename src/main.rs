@@ -11,7 +11,16 @@ use std::path::Path;
 
 fn main() {
     let config = read_config().expect("Error reading config");
-    parse_config(config);
+    let (ssh_servers, folders) = parse_config(config);
+
+    for ssh_server_map in ssh_servers {
+        let ssh_server = ssh_server_map.1;
+        println!("{:?}", ssh_server);
+    }
+    for folder_map in folders {
+        let folder = folder_map.1;
+        println!("{:?}: {:?}, {:?}", folder.name, folder.path, folder.target);
+    }
 }
 
 fn read_config() -> Option<String> {
@@ -28,17 +37,13 @@ fn read_config() -> Option<String> {
     return None;
 }
 
-fn parse_config(config: String) -> () {
+fn parse_config(config: String) -> (HashMap<String, SshServer>, HashMap<String, Folder>) {
     let config: TomlConfig = toml::from_str(config.as_str()).expect("Error parsing config");
 
     let mut ssh_servers: HashMap<String, SshServer> = HashMap::new();
     for toml_ssh_server in config.ssh {
         let ssh_server = SshServer::new(toml_ssh_server.0, toml_ssh_server.1);
         ssh_servers.insert(ssh_server.key.clone(), ssh_server);
-    }
-    for ssh_server_map in ssh_servers {
-        let ssh_server = ssh_server_map.1;
-        println!("{:?}", ssh_server);
     }
 
     let mut folders: HashMap<String, Folder> = HashMap::new();
@@ -50,9 +55,5 @@ fn parse_config(config: String) -> () {
         };
         folders.insert(folder.name.clone(), folder);
     }
-
-    for folder_map in folders {
-        let folder = folder_map.1;
-        println!("{:?}: {:?}, {:?}", folder.name, folder.path, folder.target);
-    }
+    return (ssh_servers, folders);
 }
