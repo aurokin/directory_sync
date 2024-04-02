@@ -3,6 +3,7 @@ use home::home_dir;
 use model::config::TomlConfig;
 use model::folder::Folder;
 use model::folder::FolderType;
+use model::ssh::SshServer;
 use std::collections::HashMap;
 use std::fs;
 use std::option::Option;
@@ -11,6 +12,16 @@ use std::path::Path;
 fn main() {
     let config = read_config().expect("Error reading config");
     let config: TomlConfig = toml::from_str(config.as_str()).expect("Error parsing config");
+
+    let mut ssh_servers: HashMap<String, SshServer> = HashMap::new();
+    for toml_ssh_server in config.ssh {
+        let ssh_server = SshServer::new(toml_ssh_server.0, toml_ssh_server.1);
+        ssh_servers.insert(ssh_server.key.clone(), ssh_server);
+    }
+    for ssh_server_map in ssh_servers {
+        let ssh_server = ssh_server_map.1;
+        println!("{:?}", ssh_server);
+    }
 
     let mut folders: HashMap<String, Folder> = HashMap::new();
     for toml_folder in config.folders {

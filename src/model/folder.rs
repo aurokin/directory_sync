@@ -1,4 +1,5 @@
 use super::config::TomlType;
+
 #[derive(Debug)]
 pub enum FolderType {
     Local,
