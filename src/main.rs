@@ -2,16 +2,32 @@ use home::home_dir;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
+use std::option::Option;
 use std::path::Path;
 
 #[derive(Deserialize, Debug)]
 struct TomlConfig {
     folders: HashMap<String, TomlFolder>,
+    ssh: HashMap<String, TomlSshServer>,
 }
 
 #[derive(Deserialize, Debug)]
 struct TomlFolder {
     path: String,
+    target: TomlType,
+    ssh_key: Option<(String)>,
+}
+
+#[derive(Deserialize, Debug)]
+struct TomlSshServer {
+    host: String,
+    name: String,
+}
+
+#[derive(Deserialize, Debug)]
+enum TomlType {
+    local,
+    ssh,
 }
 
 struct Folder {
