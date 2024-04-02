@@ -3,7 +3,7 @@ use crate::model::{
     ssh::SshServer,
 };
 use std::collections::HashMap;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 fn get(name: String, ssh_servers: HashMap<String, SshServer>) -> Option<SshServer> {
     for ssh_server in ssh_servers {
@@ -26,10 +26,16 @@ pub fn ls(folder: Folder, ssh_servers: HashMap<String, SshServer>) -> () {
             println!("Found SSH Server - {:?}", ssh_server);
         }
         FolderType::Local => {
-            Command::new("ls -l")
+            let ls_output = Command::new("ls")
+                .arg("-l")
                 .arg(folder.path)
+                .stdout(Stdio::piped())
                 .output()
                 .expect("Failed to LS");
+
+            let ls_output = String::from_utf8(ls_output.stdout).expect("Error converting Stdout");
+
+            print!("{}", ls_output);
         }
     }
     // Command::new("ssh").arg(format!("{}", folder.name))
