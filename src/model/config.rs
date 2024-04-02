@@ -17,7 +17,7 @@ pub struct TomlFolder {
 #[derive(Deserialize, Debug)]
 pub struct TomlSshServer {
     pub host: String,
-    pub name: String,
+    pub username: String,
 }
 
 #[derive(Deserialize, Debug)]

@@ -4,7 +4,7 @@ use super::config::TomlSshServer;
 pub struct SshServer {
     pub key: String,
     pub host: String,
-    pub name: String,
+    pub username: String,
 }
 
 impl SshServer {
@@ -12,7 +12,7 @@ impl SshServer {
         Self {
             key,
             host: toml_server.host,
-            name: toml_server.name,
+            username: toml_server.username,
         }
     }
 }
