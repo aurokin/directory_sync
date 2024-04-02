@@ -26,13 +26,32 @@ struct TomlSshServer {
 
 #[derive(Deserialize, Debug)]
 enum TomlType {
-    local,
-    ssh,
+    #[serde(alias = "local")]
+    Local,
+    #[serde(alias = "ssh")]
+    Ssh,
 }
 
+#[derive(Debug)]
+enum FolderType {
+    Local,
+    Ssh,
+}
+impl FolderType {
+    fn get_folder_type(toml_type: TomlType) -> Self {
+        let folder_type = match toml_type {
+            TomlType::Local => FolderType::Local,
+            TomlType::Ssh => FolderType::Ssh,
+        };
+
+        return folder_type;
+    }
+}
+#[derive(Debug)]
 struct Folder {
     name: String,
     path: String,
+    target: FolderType,
 }
 
 fn main() {
@@ -44,13 +63,14 @@ fn main() {
         let folder = Folder {
             name: toml_folder.0,
             path: toml_folder.1.path,
+            target: FolderType::get_folder_type(toml_folder.1.target),
         };
         folders.insert(folder.name.clone(), folder);
     }
 
     for folder_map in folders {
         let folder = folder_map.1;
-        println!("{}: {}", folder.name, folder.path);
+        println!("{:?}: {:?}, {:?}", folder.name, folder.path, folder.target);
     }
 }
 
