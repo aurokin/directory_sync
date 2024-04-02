@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cargo run -- --cmd test
+cargo run -- --cmd ls 
