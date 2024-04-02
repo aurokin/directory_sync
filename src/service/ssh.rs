@@ -24,6 +24,17 @@ pub fn ls(folder: Folder, ssh_servers: HashMap<String, SshServer>) -> () {
             let ssh_key = folder.ssh_key.expect("No SSH Key Found");
             let ssh_server = get(ssh_key, ssh_servers).expect("No SSH Server Found");
             println!("Found SSH Server - {:?}", ssh_server);
+
+            let ssh_output = Command::new("ssh")
+                .arg(format!("{}@{}", ssh_server.username, ssh_server.host))
+                .arg("ls")
+                .arg("-l")
+                .arg(folder.path)
+                .stdout(Stdio::piped())
+                .output()
+                .expect("Failed to LS");
+            let ssh_output = String::from_utf8(ssh_output.stdout).expect("Error converting Stdout");
+            print!("{}", ssh_output);
         }
         FolderType::Local => {
             let ls_output = Command::new("ls")

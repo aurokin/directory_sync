@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cargo run -- --cmd ls --folder home 
+cargo run -- --cmd ls --folder pluto
