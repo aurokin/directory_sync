@@ -19,7 +19,7 @@ fn main() {
     }
     for folder_map in folders {
         let folder = folder_map.1;
-        println!("{:?}: {:?}, {:?}", folder.name, folder.path, folder.target);
+        println!("{:?}", folder);
     }
 }
 
@@ -52,6 +52,7 @@ fn parse_config(config: String) -> (HashMap<String, SshServer>, HashMap<String, 
             name: toml_folder.0,
             path: toml_folder.1.path,
             target: FolderType::get_folder_type(toml_folder.1.target),
+            ssh_key: toml_folder.1.ssh_key,
         };
         folders.insert(folder.name.clone(), folder);
     }

@@ -20,4 +20,5 @@ pub struct Folder {
     pub name: String,
     pub path: String,
     pub target: FolderType,
+    pub ssh_key: Option<String>,
 }
