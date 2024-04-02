@@ -1,18 +1,20 @@
 mod model;
 mod service;
+use clap::Parser;
 use service::config::parse_config;
 use service::config::read_config;
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    cmd: String,
+}
 
 fn main() {
     let config = read_config().expect("Error reading config");
     let (ssh_servers, folders) = parse_config(config);
+    let args = Args::parse();
 
-    for ssh_server_map in ssh_servers {
-        let ssh_server = ssh_server_map.1;
-        println!("{:?}", ssh_server);
-    }
-    for folder_map in folders {
-        let folder = folder_map.1;
-        println!("{:?}", folder);
-    }
+    println!("{:#?}\n{:#?}\n{:#?}\n", args, ssh_servers, folders);
 }
