@@ -11,7 +11,7 @@ struct Args {
     cmd: String,
 
     #[arg(short, long)]
-    folder: String,
+    folder: Option<String>,
 
     #[arg(short, long)]
     link: Option<String>,
@@ -23,11 +23,12 @@ fn main() {
     let args = Args::parse();
     match args.cmd.as_str() {
         "ls" => {
-            let folder = service::folder::get(args.folder.clone(), folders);
+            let args_folder = args.folder.expect("Specify folder");
+            let folder = service::folder::get(args_folder.clone(), folders);
             if let Some(folder) = folder {
                 service::ssh::ls(folder, ssh_servers);
             } else {
-                println!("Error locating folder: {}", args.folder)
+                println!("Error locating folder: {}", args_folder)
             }
         }
         _ => println!("{:#?}\n{:#?}\n{:#?}\n", args, ssh_servers, folders),
