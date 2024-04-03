@@ -12,6 +12,9 @@ struct Args {
 
     #[arg(short, long)]
     folder: String,
+
+    #[arg(short, long)]
+    link: Option<String>,
 }
 
 fn main() {
