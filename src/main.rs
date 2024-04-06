@@ -7,30 +7,31 @@ use service::config::read_config;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    #[arg(short, long)]
-    cmd: String,
-
-    #[arg(short, long)]
-    folder: Option<String>,
-
-    #[arg(short, long)]
-    link: Option<String>,
+    #[command(subcommand)]
+    cmd: CliCmd,
+}
+#[derive(Parser, Debug)]
+struct CmdArgs {
+    target: String,
+}
+#[derive(Parser, Debug)]
+enum CliCmd {
+    Ls(CmdArgs),
 }
 
 fn main() {
     let config = read_config().expect("Error reading config");
     let (ssh_servers, folders) = parse_config(config);
     let args = Args::parse();
-    match args.cmd.as_str() {
-        "ls" => {
-            let args_folder = args.folder.expect("Specify folder");
+    match args.cmd {
+        CliCmd::Ls(cmd_args) => {
+            let args_folder = cmd_args.target;
             let folder = service::folder::get(args_folder.clone(), folders);
             if let Some(folder) = folder {
                 service::ssh::ls(folder, ssh_servers);
             } else {
                 println!("Error locating folder: {}", args_folder)
             }
-        }
-        _ => println!("{:#?}\n{:#?}\n{:#?}\n", args, ssh_servers, folders),
+        } // _ => println!("{:#?}\n{:#?}\n{:#?}\n", args, ssh_servers, folders),
     }
 }
