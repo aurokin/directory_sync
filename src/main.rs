@@ -19,7 +19,6 @@ pub struct Args {
 fn main() {
     let config = read_config().expect("Error reading config");
     let (ssh_servers, folders, links) = parse_config(config);
-    println!("{:?}", links);
     let args = Args::parse();
     let is_link = args.link;
     match args.cmd {
