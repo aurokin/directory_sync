@@ -32,5 +32,8 @@ fn main() {
         CliCmd::Pull(pull_args) => {
             println!("{:?}", pull_args);
         }
+        CliCmd::Push(push_args) => {
+            println!("{:?}", push_args);
+        }
     }
 }

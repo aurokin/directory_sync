@@ -10,7 +10,13 @@ pub struct PullArgs {
     pub relative_path: Option<String>,
 }
 #[derive(Parser, Debug)]
+pub struct PushArgs {
+    pub target: String,
+    pub relative_path: Option<String>,
+}
+#[derive(Parser, Debug)]
 pub enum CliCmd {
     Ls(CmdArgs),
     Pull(PullArgs),
+    Push(PushArgs),
 }
