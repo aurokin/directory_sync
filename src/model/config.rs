@@ -4,6 +4,7 @@ use std::collections::HashMap;
 #[derive(Deserialize, Debug)]
 pub struct TomlConfig {
     pub folders: HashMap<String, TomlFolder>,
+    pub links: HashMap<String, TomlLink>,
     pub ssh: HashMap<String, TomlSshServer>,
 }
 
@@ -12,6 +13,13 @@ pub struct TomlFolder {
     pub path: String,
     pub target: TomlType,
     pub ssh_key: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct TomlLink {
+    pub local: String,
+    pub target: String,
+    pub paths: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]

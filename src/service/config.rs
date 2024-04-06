@@ -1,6 +1,7 @@
 use crate::model::config::TomlConfig;
 use crate::model::folder::Folder;
 use crate::model::folder::FolderType;
+use crate::model::link::Link;
 use crate::model::ssh::SshServer;
 use home::home_dir;
 use std::collections::HashMap;
@@ -22,7 +23,13 @@ pub fn read_config() -> Option<String> {
     return None;
 }
 
-pub fn parse_config(config: String) -> (HashMap<String, SshServer>, HashMap<String, Folder>) {
+pub fn parse_config(
+    config: String,
+) -> (
+    HashMap<String, SshServer>,
+    HashMap<String, Folder>,
+    HashMap<String, Link>,
+) {
     let config: TomlConfig = toml::from_str(config.as_str()).expect("Error parsing config");
 
     let mut ssh_servers: HashMap<String, SshServer> = HashMap::new();
@@ -41,5 +48,24 @@ pub fn parse_config(config: String) -> (HashMap<String, SshServer>, HashMap<Stri
         };
         folders.insert(folder.name.clone(), folder);
     }
-    return (ssh_servers, folders);
+
+    let mut links: HashMap<String, Link> = HashMap::new();
+    for toml_link in config.links {
+        let local_folder = folders.get(&toml_link.1.local);
+        let target_folder = folders.get(&toml_link.1.target);
+
+        if local_folder.is_some() && target_folder.is_some() {
+            let link = Link {
+                name: toml_link.0,
+                local: local_folder.unwrap().clone(),
+                target: target_folder.unwrap().clone(),
+                paths: toml_link.1.paths,
+            };
+            links.insert(link.name.clone(), link);
+        } else {
+            println!("Unable to parse link in configuration");
+            continue;
+        }
+    }
+    return (ssh_servers, folders, links);
 }

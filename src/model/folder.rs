@@ -1,6 +1,6 @@
 use super::config::TomlType;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum FolderType {
     Local,
     Ssh,
@@ -15,7 +15,7 @@ impl FolderType {
         return folder_type;
     }
 }
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Folder {
     pub name: String,
     pub path: String,
