@@ -9,6 +9,8 @@ use service::config::read_config;
 struct Args {
     #[command(subcommand)]
     cmd: CliCmd,
+    #[arg(short, long, action)]
+    link: bool,
 }
 #[derive(Parser, Debug)]
 struct CmdArgs {
@@ -25,13 +27,13 @@ fn main() {
     let args = Args::parse();
     match args.cmd {
         CliCmd::Ls(cmd_args) => {
-            let args_folder = cmd_args.target;
-            let folder = service::folder::get(args_folder.clone(), folders);
+            let target = cmd_args.target;
+            let folder = service::folder::get(target.clone(), folders);
             if let Some(folder) = folder {
                 service::ssh::ls(folder, ssh_servers);
             } else {
-                println!("Error locating folder: {}", args_folder)
+                println!("Error locating folder: {}", target)
             }
-        } // _ => println!("{:#?}\n{:#?}\n{:#?}\n", args, ssh_servers, folders),
+        }
     }
 }
