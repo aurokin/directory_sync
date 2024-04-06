@@ -28,5 +28,8 @@ fn main() {
                 println!("Error locating folder: {}", target)
             }
         }
+        CliCmd::Pull(pull_args) => {
+            println!("{:?}", pull_args);
+        }
     }
 }
