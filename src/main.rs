@@ -1,24 +1,17 @@
 mod model;
 mod service;
 use clap::Parser;
+use model::cli::CliCmd;
 use service::config::parse_config;
 use service::config::read_config;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct Args {
+pub struct Args {
     #[command(subcommand)]
-    cmd: CliCmd,
+    pub cmd: CliCmd,
     #[arg(short, long, action)]
-    link: bool,
-}
-#[derive(Parser, Debug)]
-struct CmdArgs {
-    target: String,
-}
-#[derive(Parser, Debug)]
-enum CliCmd {
-    Ls(CmdArgs),
+    pub link: bool,
 }
 
 fn main() {
