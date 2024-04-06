@@ -5,6 +5,8 @@ use model::cli::CliCmd;
 use service::config::parse_config;
 use service::config::read_config;
 
+use crate::service::cli::ls;
+
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct Args {
@@ -19,16 +21,9 @@ fn main() {
     let (ssh_servers, folders, links) = parse_config(config);
     println!("{:?}", links);
     let args = Args::parse();
+    let is_link = args.link;
     match args.cmd {
-        CliCmd::Ls(cmd_args) => {
-            let target = cmd_args.target;
-            let folder = service::folder::get(target.clone(), folders);
-            if let Some(folder) = folder {
-                service::ssh::ls(folder, ssh_servers);
-            } else {
-                println!("Error locating folder: {}", target)
-            }
-        }
+        CliCmd::Ls(cmd_args) => ls(cmd_args, folders, ssh_servers, links, is_link),
         CliCmd::Pull(pull_args) => {
             println!("{:?}", pull_args);
         }

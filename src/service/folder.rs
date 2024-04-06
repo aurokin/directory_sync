@@ -1,5 +1,3 @@
-// folder.rs
-
 use crate::model::folder::Folder;
 use std::collections::HashMap;
 

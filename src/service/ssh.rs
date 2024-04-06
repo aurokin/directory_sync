@@ -5,9 +5,9 @@ use crate::model::{
 use std::collections::HashMap;
 use std::process::{Command, Stdio};
 
-fn get(name: String, ssh_servers: HashMap<String, SshServer>) -> Option<SshServer> {
+fn get(name: String, ssh_servers: &HashMap<String, SshServer>) -> Option<&SshServer> {
     for ssh_server in ssh_servers {
-        if name == ssh_server.0 {
+        if name == *ssh_server.0 {
             let ssh_server = ssh_server.1;
             return Some(ssh_server);
         }
@@ -16,7 +16,7 @@ fn get(name: String, ssh_servers: HashMap<String, SshServer>) -> Option<SshServe
     return None;
 }
 
-pub fn ls(folder: Folder, ssh_servers: HashMap<String, SshServer>) -> () {
+pub fn ls(folder: Folder, ssh_servers: &HashMap<String, SshServer>) -> () {
     println!("SSH - {:?}", folder);
 
     match folder.target {
