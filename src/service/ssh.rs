@@ -17,12 +17,12 @@ fn get(name: String, ssh_servers: &HashMap<String, SshServer>) -> Option<&SshSer
 }
 
 pub fn ls(
-    folder: Folder,
+    folder: &Folder,
     ssh_servers: &HashMap<String, SshServer>,
     relative_path: &Option<String>,
 ) -> () {
     println!("SSH - {:?}", folder);
-    let mut path = folder.path;
+    let mut path = folder.path.clone();
 
     if let Some(relative_path) = relative_path {
         path = format!("{}/{}", path, relative_path);
@@ -31,7 +31,7 @@ pub fn ls(
 
     match folder.target {
         FolderType::Ssh => {
-            let ssh_key = folder.ssh_key.expect("No SSH Key Found");
+            let ssh_key = folder.ssh_key.clone().expect("No SSH Key Found");
             let ssh_server = get(ssh_key, ssh_servers).expect("No SSH Server Found");
 
             let ssh_output = Command::new("ssh")
