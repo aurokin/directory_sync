@@ -3,6 +3,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 pub struct CmdArgs {
     pub target: String,
+    pub relative_path: Option<String>,
 }
 #[derive(Parser, Debug)]
 pub struct PullArgs {

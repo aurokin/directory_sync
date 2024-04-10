@@ -16,8 +16,18 @@ fn get(name: String, ssh_servers: &HashMap<String, SshServer>) -> Option<&SshSer
     return None;
 }
 
-pub fn ls(folder: Folder, ssh_servers: &HashMap<String, SshServer>) -> () {
+pub fn ls(
+    folder: Folder,
+    ssh_servers: &HashMap<String, SshServer>,
+    relative_path: &Option<String>,
+) -> () {
     println!("SSH - {:?}", folder);
+    let mut path = folder.path;
+
+    if let Some(relative_path) = relative_path {
+        path = format!("{}/{}", path, relative_path);
+        println!("{}", &path);
+    }
 
     match folder.target {
         FolderType::Ssh => {
@@ -28,7 +38,7 @@ pub fn ls(folder: Folder, ssh_servers: &HashMap<String, SshServer>) -> () {
                 .arg(format!("{}@{}", ssh_server.username, ssh_server.host))
                 .arg("ls")
                 .arg("-l")
-                .arg(folder.path)
+                .arg(path)
                 .stdout(Stdio::piped())
                 .output()
                 .expect("Failed to LS");
@@ -38,7 +48,7 @@ pub fn ls(folder: Folder, ssh_servers: &HashMap<String, SshServer>) -> () {
         FolderType::Local => {
             let ls_output = Command::new("ls")
                 .arg("-l")
-                .arg(folder.path)
+                .arg(path)
                 .stdout(Stdio::piped())
                 .output()
                 .expect("Failed to LS");
