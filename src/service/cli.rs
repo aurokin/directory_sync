@@ -7,10 +7,10 @@ use std::collections::HashMap;
 
 pub fn ls(
     cmd_args: CmdArgs,
-    folders: HashMap<String, Folder>,
-    ssh_servers: HashMap<String, SshServer>,
-    links: HashMap<String, Link>,
     is_link: bool,
+    folders: HashMap<String, Folder>,
+    links: HashMap<String, Link>,
+    ssh_servers: HashMap<String, SshServer>,
 ) -> () {
     let target = cmd_args.target;
     let relative_path = cmd_args.relative_path;

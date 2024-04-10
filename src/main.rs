@@ -22,12 +22,12 @@ fn main() {
     let args = Args::parse();
     let is_link = args.link;
     match args.cmd {
-        CliCmd::Ls(cmd_args) => ls(cmd_args, folders, ssh_servers, links, is_link),
-        CliCmd::Pull(pull_args) => {
-            println!("{:?}", pull_args);
+        CliCmd::Ls(cmd_args) => ls(cmd_args, is_link, folders, links, ssh_servers),
+        CliCmd::Pull(cmd_args) => {
+            println!("{:?}", cmd_args);
         }
-        CliCmd::Push(push_args) => {
-            println!("{:?}", push_args);
+        CliCmd::Push(cmd_args) => {
+            println!("{:?}", cmd_args);
         }
     }
 }
