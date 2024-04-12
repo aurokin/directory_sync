@@ -59,3 +59,16 @@ pub fn ls(
         }
     }
 }
+pub fn pull(
+    base_folder: &Folder,
+    folder: &Folder,
+    ssh_servers: &HashMap<String, SshServer>,
+    relative_path: &Option<String>,
+) -> () {
+    let mut path = folder.path.clone();
+
+    if let Some(relative_path) = relative_path {
+        path = format!("{}/{}", path, relative_path);
+        println!("{}", &path);
+    }
+}
