@@ -51,13 +51,18 @@ pub fn ls(
     cmd_args.push("ls".to_string());
     cmd_args.push("-l".to_string());
     cmd_args.push(path.clone());
-    let ls_cmd = Command::new(cmd_args)
+    let first_cmd = cmd_args.first().expect("First argument required");
+    let mut ls_cmd = Command::new(first_cmd);
+    for cmd_arg in &cmd_args[1..] {
+        ls_cmd.arg(cmd_arg);
+    }
+
+    let ls_output = ls_cmd
         .stdout(Stdio::piped())
         .output()
         .expect("Failed to LS");
-
-    let ls_cmd = String::from_utf8(ls_cmd.stdout).expect("Error converting Stdout");
-    println!("{}", ls_cmd);
+    let ls_output = String::from_utf8(ls_output.stdout).expect("Error converting Stdout");
+    println!("{}", ls_output);
 }
 pub fn sync(
     from_folder: &Folder,
@@ -65,7 +70,8 @@ pub fn sync(
     ssh_servers: &HashMap<String, SshServer>,
     relative_path: &Option<String>,
 ) -> () {
+    // preview argument, to hellp build prompts
     let from_path = build_path(from_folder, relative_path);
     let to_path = build_path(to_folder, relative_path);
-    println!("{:?} {:?}", from_path, to_path);
+    println!("{:?} {:?} {:?}", from_path, to_path, ssh_servers);
 }
