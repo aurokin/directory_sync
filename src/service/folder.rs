@@ -14,7 +14,7 @@ pub fn get(name: String, folders: HashMap<String, Folder>) -> Option<Folder> {
 
 pub fn get_current_dir() -> Option<Folder> {
     let current_dir = env::current_dir();
-    let current_dir = match current_dir {
+    match current_dir {
         Ok(dir) => {
             return Some(Folder {
                 name: "current_working_directory".to_string(),
@@ -26,6 +26,6 @@ pub fn get_current_dir() -> Option<Folder> {
                 ssh_key: None,
             });
         }
-        Err(e) => return None,
+        Err(_) => return None,
     };
 }
