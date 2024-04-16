@@ -2,8 +2,8 @@ use crate::model::{
     folder::{Folder, FolderType},
     ssh::SshServer,
 };
-use std::collections::HashMap;
 use std::process::{Command, Stdio};
+use std::{collections::HashMap, io};
 
 fn build_path(folder: &Folder, relative_path: &Option<String>) -> String {
     if let Some(relative_path) = relative_path {
@@ -71,6 +71,7 @@ pub fn sync(
     relative_path: &Option<String>,
 ) -> () {
     // preview argument, to help build prompts
+    // add ssh connection checks
     let from_path = build_path(from_folder, relative_path);
     let to_path = build_path(to_folder, relative_path);
     println!("Sync: {:?} - {:?}", from_path, to_path);
@@ -96,20 +97,6 @@ pub fn sync(
     }
     check_if_from_folders_exist.push("ls".to_string());
     check_if_from_folders_exist.push(from_path.clone());
-    println!(
-        "Check If From Folders Exist: {:?}",
-        check_if_from_folders_exist
-    );
-
-    if is_to_ssh {
-        let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
-        remove_to_folders.push("ssh".to_string());
-        remove_to_folders.push(ssh_cmd);
-    }
-    remove_to_folders.push("rm".to_string());
-    remove_to_folders.push("-rf".to_string());
-    remove_to_folders.push(to_path.clone());
-    println!("Remove To Folders: {:?}", remove_to_folders);
 
     if is_to_ssh {
         let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
@@ -119,7 +106,15 @@ pub fn sync(
     create_empty_to_folders.push("mkdir".to_string());
     create_empty_to_folders.push("-p".to_string());
     create_empty_to_folders.push(to_path.clone());
-    println!("Create Empty To Folders: {:?}", create_empty_to_folders);
+
+    if is_to_ssh {
+        let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
+        remove_to_folders.push("ssh".to_string());
+        remove_to_folders.push(ssh_cmd);
+    }
+    remove_to_folders.push("rm".to_string());
+    remove_to_folders.push("-rf".to_string());
+    remove_to_folders.push(to_path.clone());
 
     if is_from_ssh || is_to_ssh {
         copy_to_folder.push("scp".to_string());
@@ -142,5 +137,37 @@ pub fn sync(
     } else {
         copy_to_folder.push(to_path.clone());
     }
-    println!("Copy To Folder; {:?}", copy_to_folder);
+
+    let check_folder_arg = check_if_from_folders_exist
+        .first()
+        .expect("First argument required");
+    let mut check_folder_cmd = Command::new(check_folder_arg);
+    for folder_arg in &check_if_from_folders_exist[1..] {
+        check_folder_cmd.arg(folder_arg);
+    }
+    let check_folder_output = check_folder_cmd
+        .stdout(Stdio::piped())
+        .output()
+        .expect("Failed to Check Folder");
+    let check_folder_output =
+        String::from_utf8(check_folder_output.stdout).expect("Error converting Stdout");
+    if check_folder_output.contains(&"No such".to_string()) {
+        println!("Error: From Folder Does Not Exist");
+        return;
+    }
+    println!("Ready for transfer, would you like to continue? The following commands will run");
+    println!("- {}", create_empty_to_folders.join(" "));
+    println!("- {}", remove_to_folders.join(" "));
+    println!("- {}", copy_to_folder.join(" "));
+    println!("Enter y to continue!");
+
+    let mut user_run_input = String::from("");
+    io::stdin()
+        .read_line(&mut user_run_input)
+        .expect("Failed to read line");
+    let user_run_input = user_run_input.trim().to_string();
+    if user_run_input != "y".to_string() {
+        println!("Skipping this folder because the user did not input 'y'");
+        return;
+    }
 }
