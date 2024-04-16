@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cargo run -- ls pluto_ryujinx bis/
+cargo run -- -l ls ryujinx 
