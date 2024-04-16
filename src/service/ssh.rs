@@ -70,8 +70,77 @@ pub fn sync(
     ssh_servers: &HashMap<String, SshServer>,
     relative_path: &Option<String>,
 ) -> () {
-    // preview argument, to hellp build prompts
+    // preview argument, to help build prompts
     let from_path = build_path(from_folder, relative_path);
     let to_path = build_path(to_folder, relative_path);
-    println!("{:?} {:?} {:?}", from_path, to_path, ssh_servers);
+    println!("Sync: {:?} - {:?}", from_path, to_path);
+
+    let mut check_if_from_folders_exist: Vec<String> = Vec::new();
+    let mut create_empty_to_folders: Vec<String> = Vec::new();
+    let mut remove_to_folders: Vec<String> = Vec::new();
+    let mut copy_to_folder: Vec<String> = Vec::new();
+
+    let is_from_ssh = match from_folder.target {
+        FolderType::Ssh => true,
+        _ => false,
+    };
+    let is_to_ssh = match to_folder.target {
+        FolderType::Ssh => true,
+        _ => false,
+    };
+
+    if is_from_ssh {
+        let ssh_cmd = ssh_cmd(from_folder, ssh_servers);
+        check_if_from_folders_exist.push("ssh".to_string());
+        check_if_from_folders_exist.push(ssh_cmd);
+    }
+    check_if_from_folders_exist.push("ls".to_string());
+    check_if_from_folders_exist.push(from_path.clone());
+    println!(
+        "Check If From Folders Exist: {:?}",
+        check_if_from_folders_exist
+    );
+
+    if is_to_ssh {
+        let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
+        remove_to_folders.push("ssh".to_string());
+        remove_to_folders.push(ssh_cmd);
+    }
+    remove_to_folders.push("rm".to_string());
+    remove_to_folders.push("-rf".to_string());
+    remove_to_folders.push(to_path.clone());
+    println!("Remove To Folders: {:?}", remove_to_folders);
+
+    if is_to_ssh {
+        let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
+        create_empty_to_folders.push("ssh".to_string());
+        create_empty_to_folders.push(ssh_cmd);
+    }
+    create_empty_to_folders.push("mkdir".to_string());
+    create_empty_to_folders.push("-p".to_string());
+    create_empty_to_folders.push(to_path.clone());
+    println!("Create Empty To Folders: {:?}", create_empty_to_folders);
+
+    if is_from_ssh || is_to_ssh {
+        copy_to_folder.push("scp".to_string());
+        copy_to_folder.push("-r".to_string());
+    } else {
+        copy_to_folder.push("cp".to_string());
+        copy_to_folder.push("-R".to_string());
+    }
+    if is_from_ssh {
+        let ssh_cmd = ssh_cmd(from_folder, ssh_servers);
+        let scp_path = format!("{}:'{}'", ssh_cmd, from_path.clone());
+        copy_to_folder.push(scp_path);
+    } else {
+        copy_to_folder.push(from_path.clone());
+    }
+    if is_to_ssh {
+        let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
+        let scp_path = format!("{}:'{}'", ssh_cmd, from_path.clone());
+        copy_to_folder.push(scp_path);
+    } else {
+        copy_to_folder.push(to_path.clone());
+    }
+    println!("Copy To Folder; {:?}", copy_to_folder);
 }

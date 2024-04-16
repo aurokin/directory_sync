@@ -7,6 +7,7 @@ use service::config::read_config;
 
 use crate::service::cli::ls;
 use crate::service::cli::pull;
+use crate::service::cli::push;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -25,8 +26,6 @@ fn main() {
     match args.cmd {
         CliCmd::Ls(cmd_args) => ls(cmd_args, is_link, folders, links, ssh_servers),
         CliCmd::Pull(cmd_args) => pull(cmd_args, is_link, folders, links, ssh_servers),
-        CliCmd::Push(cmd_args) => {
-            println!("{:?}", cmd_args);
-        }
+        CliCmd::Push(cmd_args) => push(cmd_args, is_link, folders, links, ssh_servers),
     }
 }
