@@ -47,13 +47,14 @@ fn scp_cmd(
     let mut scp_args: Vec<String> = Vec::new();
     let mut port: u32 = 22;
 
+    let from_path = from_path.replace(" ", "\\ ");
     let from_path = match from_folder.target {
         FolderType::Ssh => {
             let ssh_key = from_folder.ssh_key.clone().expect("No SSH Key Found");
             let ssh_server = get(ssh_key, ssh_servers).expect("No SSH Server Found");
             port = ssh_server.port;
             format!(
-                "{}@{}:'{}'",
+                "{}@{}:{}",
                 ssh_server.username,
                 ssh_server.host,
                 from_path.clone()
@@ -62,13 +63,14 @@ fn scp_cmd(
         FolderType::Local => from_path.clone(),
     };
 
+    let to_path = to_path.replace(" ", "\\ ");
     let to_path = match to_folder.target {
         FolderType::Ssh => {
             let ssh_key = to_folder.ssh_key.clone().expect("No SSH Key Found");
             let ssh_server = get(ssh_key, ssh_servers).expect("No SSH Server Found");
             port = ssh_server.port;
             format!(
-                "{}@{}:'{}'",
+                "{}@{}:{}",
                 ssh_server.username,
                 ssh_server.host,
                 to_path.clone()
@@ -259,6 +261,7 @@ pub fn sync(
     for folder_arg in &copy_to_folder[1..] {
         copy_to_folder_cmd.arg(folder_arg);
     }
+    println!("{:?}", copy_to_folder_cmd);
     let copy_to_folder_output = copy_to_folder_cmd
         .stdout(Stdio::piped())
         .output()
