@@ -125,6 +125,7 @@ pub fn sync(
     to_folder: &Folder,
     ssh_servers: &HashMap<String, SshServer>,
     relative_path: &Option<String>,
+    force: bool,
 ) -> () {
     // preview argument, to help build prompts
     // add ssh connection checks
@@ -214,16 +215,18 @@ pub fn sync(
     println!("- {}", create_empty_to_folders.join(" "));
     println!("- {}", remove_to_folders.join(" "));
     println!("- {}", copy_to_folder.join(" "));
-    println!("Enter y to continue!");
 
-    let mut user_run_input = String::from("");
-    io::stdin()
-        .read_line(&mut user_run_input)
-        .expect("Failed to read line");
-    let user_run_input = user_run_input.trim().to_string();
-    if user_run_input != "y".to_string() {
-        println!("Skipping this folder because the user did not input 'y'");
-        return;
+    if !force {
+        println!("Enter y to continue!");
+        let mut user_run_input = String::from("");
+        io::stdin()
+            .read_line(&mut user_run_input)
+            .expect("Failed to read line");
+        let user_run_input = user_run_input.trim().to_string();
+        if user_run_input != "y".to_string() {
+            println!("Skipping this folder because the user did not input 'y'");
+            return;
+        }
     }
 
     let create_empty_folders_arg = create_empty_to_folders

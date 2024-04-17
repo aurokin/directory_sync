@@ -16,6 +16,8 @@ pub struct Args {
     pub cmd: CliCmd,
     #[arg(short, long, action)]
     pub link: bool,
+    #[arg(short, long, action)]
+    pub force: bool,
 }
 
 fn main() {
@@ -23,9 +25,10 @@ fn main() {
     let (ssh_servers, folders, links) = parse_config(config);
     let args = Args::parse();
     let is_link = args.link;
+    let is_force = args.force;
     match args.cmd {
         CliCmd::Ls(cmd_args) => ls(cmd_args, is_link, folders, links, ssh_servers),
-        CliCmd::Pull(cmd_args) => pull(cmd_args, is_link, folders, links, ssh_servers),
-        CliCmd::Push(cmd_args) => push(cmd_args, is_link, folders, links, ssh_servers),
+        CliCmd::Pull(cmd_args) => pull(cmd_args, is_link, is_force, folders, links, ssh_servers),
+        CliCmd::Push(cmd_args) => push(cmd_args, is_link, is_force, folders, links, ssh_servers),
     }
 }

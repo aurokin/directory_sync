@@ -40,6 +40,7 @@ pub fn ls(
 pub fn pull(
     cmd_args: CmdArgs,
     is_link: bool,
+    is_force: bool,
     folders: HashMap<String, Folder>,
     links: HashMap<String, Link>,
     ssh_servers: HashMap<String, SshServer>,
@@ -52,10 +53,22 @@ pub fn pull(
             if link.paths.len() > 0 {
                 for path in link.paths {
                     let path = Some(path);
-                    crate::service::ssh::sync(&link.target, &link.local, &ssh_servers, &path);
+                    crate::service::ssh::sync(
+                        &link.target,
+                        &link.local,
+                        &ssh_servers,
+                        &path,
+                        is_force,
+                    );
                 }
             } else {
-                crate::service::ssh::sync(&link.target, &link.local, &ssh_servers, &relative_path);
+                crate::service::ssh::sync(
+                    &link.target,
+                    &link.local,
+                    &ssh_servers,
+                    &relative_path,
+                    is_force,
+                );
             }
         }
     } else {
@@ -64,7 +77,13 @@ pub fn pull(
         let folder: Option<Folder> = folder::get(target.clone(), folders);
 
         if let Some(folder) = folder {
-            crate::service::ssh::sync(&folder, &current_folder, &ssh_servers, &relative_path);
+            crate::service::ssh::sync(
+                &folder,
+                &current_folder,
+                &ssh_servers,
+                &relative_path,
+                is_force,
+            );
         } else {
             println!("Error locating folder: {}", target)
         }
@@ -74,6 +93,7 @@ pub fn pull(
 pub fn push(
     cmd_args: CmdArgs,
     is_link: bool,
+    is_force: bool,
     folders: HashMap<String, Folder>,
     links: HashMap<String, Link>,
     ssh_servers: HashMap<String, SshServer>,
@@ -86,10 +106,22 @@ pub fn push(
             if link.paths.len() > 0 {
                 for path in link.paths {
                     let path = Some(path);
-                    crate::service::ssh::sync(&link.local, &link.target, &ssh_servers, &path);
+                    crate::service::ssh::sync(
+                        &link.local,
+                        &link.target,
+                        &ssh_servers,
+                        &path,
+                        is_force,
+                    );
                 }
             } else {
-                crate::service::ssh::sync(&link.local, &link.target, &ssh_servers, &relative_path);
+                crate::service::ssh::sync(
+                    &link.local,
+                    &link.target,
+                    &ssh_servers,
+                    &relative_path,
+                    is_force,
+                );
             }
         }
     } else {
@@ -98,7 +130,13 @@ pub fn push(
         let folder: Option<Folder> = folder::get(target.clone(), folders);
 
         if let Some(folder) = folder {
-            crate::service::ssh::sync(&current_folder, &folder, &ssh_servers, &relative_path);
+            crate::service::ssh::sync(
+                &current_folder,
+                &folder,
+                &ssh_servers,
+                &relative_path,
+                is_force,
+            );
         } else {
             println!("Error locating folder: {}", target)
         }
