@@ -10,7 +10,10 @@ pub struct SshServer {
 
 impl SshServer {
     pub fn new(key: String, toml_server: TomlSshServer) -> Self {
-        let port = 22;
+        let port = match toml_server.port {
+            None => 22,
+            Some(port) => port.parse::<u32>().unwrap(),
+        };
         Self {
             key,
             host: toml_server.host,
