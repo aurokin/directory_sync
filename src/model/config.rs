@@ -26,6 +26,7 @@ pub struct TomlLink {
 pub struct TomlSshServer {
     pub host: String,
     pub username: String,
+    pub port: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]

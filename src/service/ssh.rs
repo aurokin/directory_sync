@@ -58,7 +58,7 @@ pub fn ls(
     }
 
     let ls_output = ls_cmd
-        .stdout(Stdio::piped())
+        .stdout(Stdio::inherit())
         .output()
         .expect("Failed to LS");
     let ls_output = String::from_utf8(ls_output.stdout).expect("Error converting Stdout");
@@ -127,7 +127,7 @@ pub fn sync(
     };
     if is_from_ssh {
         let ssh_cmd = ssh_cmd(from_folder, ssh_servers);
-        let from_path_safe = from_path.clone().replace(" ", r"\ ");
+        let from_path_safe = from_path.clone().replace(" ", "\\ ");
         let scp_path = format!("{}:'{}'", ssh_cmd, from_path_safe);
         copy_to_folder.push(scp_path);
     } else {
@@ -140,7 +140,7 @@ pub fn sync(
     }
     if is_to_ssh {
         let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
-        let to_path_safe = to_path.clone().replace(" ", r"\ ");
+        let to_path_safe = to_path.clone().replace(" ", "\\ ");
         let scp_path = format!("{}:'{}'", ssh_cmd, to_path_safe);
         copy_to_folder.push(scp_path);
     } else {
