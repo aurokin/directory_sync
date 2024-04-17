@@ -128,13 +128,11 @@ pub fn sync(
     if is_from_ssh {
         let ssh_cmd = ssh_cmd(from_folder, ssh_servers);
         let from_path_safe = from_path.clone().replace(" ", r"\ ");
-        println!("{}", from_path_safe);
-        println!("{:?}", from_path_safe);
         let scp_path = format!("{}:'{}'", ssh_cmd, from_path_safe);
         copy_to_folder.push(scp_path);
     } else {
         let from_path_safe = if is_scp {
-            from_path.clone().replace(" ", r"\ ")
+            from_path.clone().replace(" ", "\\ ")
         } else {
             from_path.clone()
         };
@@ -143,13 +141,11 @@ pub fn sync(
     if is_to_ssh {
         let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
         let to_path_safe = to_path.clone().replace(" ", r"\ ");
-        println!("{}", to_path_safe);
-        println!("{:?}", to_path_safe);
         let scp_path = format!("{}:'{}'", ssh_cmd, to_path_safe);
         copy_to_folder.push(scp_path);
     } else {
         let to_path_safe = if is_scp {
-            to_path.clone().replace(" ", r"\ ")
+            to_path.clone().replace(" ", "\\ ")
         } else {
             to_path.clone()
         };
@@ -202,7 +198,7 @@ pub fn sync(
         .expect("Failed to Create Folders");
     let create_empty_folders_output =
         String::from_utf8(create_empty_folders_output.stdout).expect("Error converting Stdout");
-    println!("{}", create_empty_folders_output);
+    println!("{:?}", create_empty_folders_output);
 
     let remove_folders_arg = remove_to_folders.first().expect("First argument required");
     let mut remove_folders_cmd = Command::new(remove_folders_arg);
@@ -215,7 +211,7 @@ pub fn sync(
         .expect("Failed to Remove Folders");
     let remove_folders_output =
         String::from_utf8(remove_folders_output.stdout).expect("Error converting Stdout");
-    println!("{}", remove_folders_output);
+    println!("{:?}", remove_folders_output);
 
     let copy_to_folder_arg = copy_to_folder.first().expect("First argument required");
     let mut copy_to_folder_cmd = Command::new(copy_to_folder_arg);
@@ -228,5 +224,5 @@ pub fn sync(
         .expect("Failed to Copy Files");
     let copy_to_folder_output =
         String::from_utf8(copy_to_folder_output.stdout).expect("Error converting Stdout");
-    println!("{}", copy_to_folder_output);
+    println!("{:?}", copy_to_folder_output);
 }
