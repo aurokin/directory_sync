@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 #[derive(Deserialize, Debug)]
 pub struct TomlConfig {
+    pub local_work_dir: String,
     pub folders: HashMap<String, TomlFolder>,
     pub links: HashMap<String, TomlLink>,
     pub ssh: HashMap<String, TomlSshServer>,
@@ -26,6 +27,7 @@ pub struct TomlLink {
 pub struct TomlSshServer {
     pub host: String,
     pub username: String,
+    pub work_dir: String,
     pub port: Option<String>,
 }
 

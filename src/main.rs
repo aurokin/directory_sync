@@ -18,6 +18,8 @@ pub struct Args {
     pub link: bool,
     #[arg(short, long, action)]
     pub force: bool,
+    #[arg(short, long, action)]
+    pub direct: bool,
 }
 
 fn main() {
