@@ -24,11 +24,66 @@ fn get(name: String, ssh_servers: &HashMap<String, SshServer>) -> Option<&SshSer
     return None;
 }
 
-fn ssh_cmd(folder: &Folder, ssh_servers: &HashMap<String, SshServer>) -> String {
+fn ssh_cmd(folder: &Folder, ssh_servers: &HashMap<String, SshServer>) -> Vec<String> {
+    let mut ssh_args: Vec<String> = Vec::new();
     let ssh_key = folder.ssh_key.clone().expect("No SSH Key Found");
     let ssh_server = get(ssh_key, ssh_servers).expect("No SSH Server Found");
     let ssh_connection_str = format!("{}@{}", ssh_server.username, ssh_server.host);
-    return ssh_connection_str;
+
+    ssh_args.push("ssh".to_string());
+    ssh_args.push("-p".to_string());
+    ssh_args.push(ssh_server.port.to_string());
+    ssh_args.push(ssh_connection_str);
+    return ssh_args;
+}
+
+fn scp_cmd(
+    from_folder: &Folder,
+    to_folder: &Folder,
+    from_path: String,
+    to_path: String,
+    ssh_servers: &HashMap<String, SshServer>,
+) -> Vec<String> {
+    let mut scp_args: Vec<String> = Vec::new();
+    let mut port: u32 = 22;
+
+    let from_path = match from_folder.target {
+        FolderType::Ssh => {
+            let ssh_key = from_folder.ssh_key.clone().expect("No SSH Key Found");
+            let ssh_server = get(ssh_key, ssh_servers).expect("No SSH Server Found");
+            port = ssh_server.port;
+            format!(
+                "{}@{}:'{}'",
+                ssh_server.username,
+                ssh_server.host,
+                from_path.clone()
+            )
+        }
+        FolderType::Local => from_path.clone(),
+    };
+
+    let to_path = match to_folder.target {
+        FolderType::Ssh => {
+            let ssh_key = to_folder.ssh_key.clone().expect("No SSH Key Found");
+            let ssh_server = get(ssh_key, ssh_servers).expect("No SSH Server Found");
+            port = ssh_server.port;
+            format!(
+                "{}@{}:'{}'",
+                ssh_server.username,
+                ssh_server.host,
+                to_path.clone()
+            )
+        }
+        FolderType::Local => to_path.clone(),
+    };
+
+    scp_args.push("scp".to_string());
+    scp_args.push("-P".to_string());
+    scp_args.push(port.to_string());
+    scp_args.push("-r".to_string());
+    scp_args.push(from_path);
+    scp_args.push(to_path);
+    return scp_args;
 }
 
 pub fn ls(
@@ -43,8 +98,9 @@ pub fn ls(
     match folder.target {
         FolderType::Ssh => {
             let ssh_cmd = ssh_cmd(folder, ssh_servers);
-            cmd_args.push("ssh".to_string());
-            cmd_args.push(ssh_cmd);
+            for cmd in ssh_cmd.iter() {
+                cmd_args.push(cmd.to_string());
+            }
         }
         _ => {}
     }
@@ -92,16 +148,18 @@ pub fn sync(
 
     if is_from_ssh {
         let ssh_cmd = ssh_cmd(from_folder, ssh_servers);
-        check_if_from_folders_exist.push("ssh".to_string());
-        check_if_from_folders_exist.push(ssh_cmd);
+        for cmd in ssh_cmd.iter() {
+            check_if_from_folders_exist.push(cmd.to_string());
+        }
     }
     check_if_from_folders_exist.push("ls".to_string());
     check_if_from_folders_exist.push(from_path.clone());
 
     if is_to_ssh {
         let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
-        create_empty_to_folders.push("ssh".to_string());
-        create_empty_to_folders.push(ssh_cmd);
+        for cmd in ssh_cmd.iter() {
+            create_empty_to_folders.push(cmd.to_string());
+        }
     }
     create_empty_to_folders.push("mkdir".to_string());
     create_empty_to_folders.push("-p".to_string());
@@ -109,48 +167,31 @@ pub fn sync(
 
     if is_to_ssh {
         let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
-        remove_to_folders.push("ssh".to_string());
-        remove_to_folders.push(ssh_cmd);
+        for cmd in ssh_cmd.iter() {
+            remove_to_folders.push(cmd.to_string());
+        }
     }
     remove_to_folders.push("rm".to_string());
     remove_to_folders.push("-rf".to_string());
     remove_to_folders.push(to_path.clone());
 
-    let is_scp = if is_from_ssh || is_to_ssh {
-        copy_to_folder.push("scp".to_string());
-        copy_to_folder.push("-r".to_string());
-        true
+    if is_from_ssh || is_to_ssh {
+        let scp_cmd = scp_cmd(
+            from_folder,
+            to_folder,
+            from_path.clone(),
+            to_path.clone(),
+            ssh_servers,
+        );
+        for cmd in scp_cmd.iter() {
+            copy_to_folder.push(cmd.to_string());
+        }
     } else {
         copy_to_folder.push("cp".to_string());
         copy_to_folder.push("-R".to_string());
-        false
+        copy_to_folder.push(from_path.clone());
+        copy_to_folder.push(to_path.clone());
     };
-    if is_from_ssh {
-        let ssh_cmd = ssh_cmd(from_folder, ssh_servers);
-        let from_path_safe = from_path.clone().replace(" ", "\\ ");
-        let scp_path = format!("{}:'{}'", ssh_cmd, from_path_safe);
-        copy_to_folder.push(scp_path);
-    } else {
-        let from_path_safe = if is_scp {
-            from_path.clone().replace(" ", "\\ ")
-        } else {
-            from_path.clone()
-        };
-        copy_to_folder.push(from_path_safe);
-    }
-    if is_to_ssh {
-        let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
-        let to_path_safe = to_path.clone().replace(" ", "\\ ");
-        let scp_path = format!("{}:'{}'", ssh_cmd, to_path_safe);
-        copy_to_folder.push(scp_path);
-    } else {
-        let to_path_safe = if is_scp {
-            to_path.clone().replace(" ", "\\ ")
-        } else {
-            to_path.clone()
-        };
-        copy_to_folder.push(to_path_safe);
-    }
 
     let check_folder_arg = check_if_from_folders_exist
         .first()
