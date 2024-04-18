@@ -1,4 +1,3 @@
-// tar.rs
 use crate::model::folder::Folder;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
