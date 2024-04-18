@@ -1,4 +1,5 @@
 use crate::service::ssh::{scp_cmd, ssh_cmd};
+use crate::service::tar::tar_directory;
 use crate::{
     model::{
         folder::{Folder, FolderType},
