@@ -23,10 +23,14 @@ pub fn add_ssh_cmd(
     match folder.target {
         FolderType::Ssh => {
             let ssh_cmd = ssh_cmd(folder, ssh_servers);
+            let mut full_cmd_args: Vec<String> = Vec::new();
             for cmd in ssh_cmd.iter() {
-                cmd_args.push(cmd.to_string());
+                full_cmd_args.push(cmd.to_string());
             }
-            cmd_args.to_vec()
+            for cmd in cmd_args.iter() {
+                full_cmd_args.push(cmd.to_string());
+            }
+            full_cmd_args.to_vec()
         }
         FolderType::Local => cmd_args.to_vec(),
     }

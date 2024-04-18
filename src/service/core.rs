@@ -85,16 +85,27 @@ pub fn sync(
         work_folder
     };
 
-    let (tar_name, tar_source_exists_args, create_tar_args, delete_from_tar_args) =
-        tar_directory(from_folder, from_work_folder);
+    let (tar_name, mut tar_source_exists_args, mut create_tar_args, mut delete_from_tar_args) =
+        tar_directory(from_path.clone(), from_work_folder);
+    let tar_source_exists_args = add_ssh_cmd(from_folder, ssh_servers, &mut tar_source_exists_args);
+    let create_tar_args = add_ssh_cmd(from_folder, ssh_servers, &mut create_tar_args);
+    let delete_from_tar_args = add_ssh_cmd(from_folder, ssh_servers, &mut delete_from_tar_args);
     let mut copy_to_folder: Vec<String> = Vec::new();
+
     let (
-        verify_tar_args,
-        make_path_to_target_folder_args,
-        delete_target_folder_args,
-        untar_folder_args,
-        delete_to_tar_args,
-    ) = untar_directory(to_folder, to_work_folder, tar_name.clone());
+        mut verify_tar_args,
+        mut make_path_to_target_folder_args,
+        mut delete_target_folder_args,
+        mut untar_folder_args,
+        mut delete_to_tar_args,
+    ) = untar_directory(to_path.clone(), to_work_folder, tar_name.clone());
+    let verify_tar_args = add_ssh_cmd(to_folder, ssh_servers, &mut verify_tar_args);
+    let make_path_to_target_folder_args =
+        add_ssh_cmd(to_folder, ssh_servers, &mut make_path_to_target_folder_args);
+    let delete_target_folder_args =
+        add_ssh_cmd(to_folder, ssh_servers, &mut delete_target_folder_args);
+    let untar_folder_args = add_ssh_cmd(to_folder, ssh_servers, &mut untar_folder_args);
+    let delete_to_tar_args = add_ssh_cmd(to_folder, ssh_servers, &mut delete_to_tar_args);
 
     if is_from_ssh || is_to_ssh {
         let scp_cmd = scp_cmd(
@@ -134,9 +145,9 @@ pub fn sync(
     }
     println!("Ready for transfer, would you like to continue? The following commands will run");
     println!("- {}", create_tar_args.join(" "));
-    println!("- {}", verify_tar_args.join(" "));
     println!("- {}", copy_to_folder.join(" "));
     println!("- {}", make_path_to_target_folder_args.join(" "));
+    println!("- {}", verify_tar_args.join(" "));
     println!("- {}", delete_target_folder_args.join(" "));
     println!("- {}", untar_folder_args.join(" "));
     println!("- {}", delete_to_tar_args.join(" "));
@@ -156,13 +167,13 @@ pub fn sync(
     }
 
     run_cmd(create_tar_args, true, "Failed to Create Tar".to_string());
-    run_cmd(verify_tar_args, true, "Failed to Verify Tar".to_string());
     run_cmd(copy_to_folder, true, "Failed to Copy Files".to_string());
     run_cmd(
         make_path_to_target_folder_args,
         true,
         "Make Target Directories".to_string(),
     );
+    run_cmd(verify_tar_args, true, "Failed to Verify Tar".to_string());
     run_cmd(
         delete_target_folder_args,
         true,
@@ -176,7 +187,7 @@ pub fn sync(
     run_cmd(
         delete_to_tar_args,
         true,
-        "Failed to Delete Target Tar".to_string(),
+        "Failed to Delete To Tar".to_string(),
     );
     run_cmd(
         delete_from_tar_args,
