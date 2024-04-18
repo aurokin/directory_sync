@@ -19,18 +19,18 @@ pub fn ls(
             if link.paths.len() > 0 {
                 for path in link.paths {
                     let path = Some(path);
-                    crate::service::ssh::ls(&link.local, &ssh_servers, &path);
-                    crate::service::ssh::ls(&link.target, &ssh_servers, &path);
+                    crate::service::core::ls(&link.local, &ssh_servers, &path);
+                    crate::service::core::ls(&link.target, &ssh_servers, &path);
                 }
             } else {
-                crate::service::ssh::ls(&link.local, &ssh_servers, &relative_path);
-                crate::service::ssh::ls(&link.target, &ssh_servers, &relative_path);
+                crate::service::core::ls(&link.local, &ssh_servers, &relative_path);
+                crate::service::core::ls(&link.target, &ssh_servers, &relative_path);
             }
         }
     } else {
         let folder = folder::get(target.clone(), folders);
         if let Some(folder) = folder {
-            crate::service::ssh::ls(&folder, &ssh_servers, &relative_path);
+            crate::service::core::ls(&folder, &ssh_servers, &relative_path);
         } else {
             println!("Error locating folder: {}", target)
         }
@@ -53,7 +53,7 @@ pub fn pull(
             if link.paths.len() > 0 {
                 for path in link.paths {
                     let path = Some(path);
-                    crate::service::ssh::sync(
+                    crate::service::core::sync(
                         &link.target,
                         &link.local,
                         &ssh_servers,
@@ -62,7 +62,7 @@ pub fn pull(
                     );
                 }
             } else {
-                crate::service::ssh::sync(
+                crate::service::core::sync(
                     &link.target,
                     &link.local,
                     &ssh_servers,
@@ -77,7 +77,7 @@ pub fn pull(
         let folder: Option<Folder> = folder::get(target.clone(), folders);
 
         if let Some(folder) = folder {
-            crate::service::ssh::sync(
+            crate::service::core::sync(
                 &folder,
                 &current_folder,
                 &ssh_servers,
@@ -106,7 +106,7 @@ pub fn push(
             if link.paths.len() > 0 {
                 for path in link.paths {
                     let path = Some(path);
-                    crate::service::ssh::sync(
+                    crate::service::core::sync(
                         &link.local,
                         &link.target,
                         &ssh_servers,
@@ -115,7 +115,7 @@ pub fn push(
                     );
                 }
             } else {
-                crate::service::ssh::sync(
+                crate::service::core::sync(
                     &link.local,
                     &link.target,
                     &ssh_servers,
@@ -130,7 +130,7 @@ pub fn push(
         let folder: Option<Folder> = folder::get(target.clone(), folders);
 
         if let Some(folder) = folder {
-            crate::service::ssh::sync(
+            crate::service::core::sync(
                 &current_folder,
                 &folder,
                 &ssh_servers,

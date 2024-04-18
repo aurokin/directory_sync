@@ -1,5 +1,6 @@
 pub mod cli;
 pub mod config;
+pub mod core;
 pub mod folder;
 pub mod link;
 pub mod ssh;
