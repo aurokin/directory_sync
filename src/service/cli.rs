@@ -41,6 +41,7 @@ pub fn pull(
     cmd_args: CmdArgs,
     is_link: bool,
     is_force: bool,
+    work_folder: Folder,
     folders: HashMap<String, Folder>,
     links: HashMap<String, Link>,
     ssh_servers: HashMap<String, SshServer>,
@@ -56,6 +57,7 @@ pub fn pull(
                     crate::service::core::sync(
                         &link.target,
                         &link.local,
+                        &work_folder,
                         &ssh_servers,
                         &path,
                         is_force,
@@ -65,6 +67,7 @@ pub fn pull(
                 crate::service::core::sync(
                     &link.target,
                     &link.local,
+                    &work_folder,
                     &ssh_servers,
                     &relative_path,
                     is_force,
@@ -80,6 +83,7 @@ pub fn pull(
             crate::service::core::sync(
                 &folder,
                 &current_folder,
+                &work_folder,
                 &ssh_servers,
                 &relative_path,
                 is_force,
@@ -94,6 +98,7 @@ pub fn push(
     cmd_args: CmdArgs,
     is_link: bool,
     is_force: bool,
+    work_folder: Folder,
     folders: HashMap<String, Folder>,
     links: HashMap<String, Link>,
     ssh_servers: HashMap<String, SshServer>,
@@ -109,6 +114,7 @@ pub fn push(
                     crate::service::core::sync(
                         &link.local,
                         &link.target,
+                        &work_folder,
                         &ssh_servers,
                         &path,
                         is_force,
@@ -118,6 +124,7 @@ pub fn push(
                 crate::service::core::sync(
                     &link.local,
                     &link.target,
+                    &work_folder,
                     &ssh_servers,
                     &relative_path,
                     is_force,
@@ -133,6 +140,7 @@ pub fn push(
             crate::service::core::sync(
                 &current_folder,
                 &folder,
+                &work_folder,
                 &ssh_servers,
                 &relative_path,
                 is_force,

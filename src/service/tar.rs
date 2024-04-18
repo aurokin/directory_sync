@@ -6,13 +6,14 @@ use rand::Rng;
 pub fn tar_directory(
     target_folder: &Folder,
     work_folder: &Folder,
-) -> (Vec<String>, Vec<String>, Vec<String>) {
+) -> (String, Vec<String>, Vec<String>, Vec<String>) {
     let random_name: String = rand::thread_rng()
         .sample_iter(&Alphanumeric)
         .take(7)
         .map(char::from)
         .collect();
-    let tar_path = format!("{}/{}.tar.gz", work_folder.path, random_name);
+    let tar_name = format!("{}.tar.gz", random_name);
+    let tar_path = format!("{}/{}", work_folder.path, &tar_name);
 
     let mut tar_source_exists_args: Vec<String> = Vec::new();
     tar_source_exists_args.push("ls".to_string());
@@ -28,7 +29,12 @@ pub fn tar_directory(
     let mut delete_tar_args: Vec<String> = Vec::new();
     delete_tar_args.push("rm".to_string());
     delete_tar_args.push(tar_path);
-    (tar_source_exists_args, create_tar_args, delete_tar_args)
+    (
+        tar_name,
+        tar_source_exists_args,
+        create_tar_args,
+        delete_tar_args,
+    )
 }
 
 pub fn untar_directory(

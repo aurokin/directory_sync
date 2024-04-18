@@ -4,7 +4,7 @@ use crate::model::{
 };
 use std::collections::HashMap;
 
-fn get(name: String, ssh_servers: &HashMap<String, SshServer>) -> Option<&SshServer> {
+pub fn get(name: String, ssh_servers: &HashMap<String, SshServer>) -> Option<&SshServer> {
     for ssh_server in ssh_servers {
         if name == *ssh_server.0 {
             let ssh_server = ssh_server.1;
@@ -48,8 +48,9 @@ pub fn ssh_cmd(folder: &Folder, ssh_servers: &HashMap<String, SshServer>) -> Vec
 pub fn scp_cmd(
     from_folder: &Folder,
     to_folder: &Folder,
-    from_path: String,
-    to_path: String,
+    tar_name: String,
+    from_work_folder: &Folder,
+    to_work_folder: &Folder,
     ssh_servers: &HashMap<String, SshServer>,
 ) -> Vec<String> {
     let mut scp_args: Vec<String> = Vec::new();
@@ -61,13 +62,14 @@ pub fn scp_cmd(
             let ssh_server = get(ssh_key, ssh_servers).expect("No SSH Server Found");
             port = ssh_server.port;
             format!(
-                "{}@{}:{}",
+                "{}@{}:{}/{}",
                 ssh_server.username,
                 ssh_server.host,
-                from_path.clone()
+                from_work_folder.path,
+                tar_name.clone(),
             )
         }
-        FolderType::Local => from_path.clone(),
+        FolderType::Local => format!("{}/{}", from_work_folder.path, tar_name.clone()),
     };
 
     let to_path = match to_folder.target {
@@ -76,13 +78,14 @@ pub fn scp_cmd(
             let ssh_server = get(ssh_key, ssh_servers).expect("No SSH Server Found");
             port = ssh_server.port;
             format!(
-                "{}@{}:{}",
+                "{}@{}:{}/{}",
                 ssh_server.username,
                 ssh_server.host,
-                to_path.clone()
+                to_work_folder.path,
+                tar_name.clone(),
             )
         }
-        FolderType::Local => to_path.clone(),
+        FolderType::Local => format!("{}/{}", to_work_folder.path, tar_name.clone()),
     };
 
     scp_args.push("scp".to_string());

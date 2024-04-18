@@ -1,12 +1,9 @@
-use crate::service::ssh::{scp_cmd, ssh_cmd};
-use crate::service::tar::tar_directory;
-use crate::{
-    model::{
-        folder::{Folder, FolderType},
-        ssh::SshServer,
-    },
-    service::ssh::add_ssh_cmd,
+use crate::model::{
+    folder::{Folder, FolderType},
+    ssh::SshServer,
 };
+use crate::service::ssh::{add_ssh_cmd, scp_cmd};
+use crate::service::tar::{tar_directory, untar_directory};
 use std::process::{Command, Stdio};
 use std::{collections::HashMap, io};
 
@@ -47,6 +44,7 @@ pub fn ls(
 pub fn sync(
     from_folder: &Folder,
     to_folder: &Folder,
+    work_folder: &Folder,
     ssh_servers: &HashMap<String, SshServer>,
     relative_path: &Option<String>,
     force: bool,
@@ -57,11 +55,6 @@ pub fn sync(
     let to_path = build_path(to_folder, relative_path);
     println!("Sync: {:?} - {:?}", from_path, to_path);
 
-    let mut check_if_from_folders_exist: Vec<String> = Vec::new();
-    let mut create_empty_to_folders: Vec<String> = Vec::new();
-    let mut remove_to_folders: Vec<String> = Vec::new();
-    let mut copy_to_folder: Vec<String> = Vec::new();
-
     let is_from_ssh = match from_folder.target {
         FolderType::Ssh => true,
         _ => false,
@@ -70,34 +63,46 @@ pub fn sync(
         FolderType::Ssh => true,
         _ => false,
     };
-
     if is_from_ssh && is_to_ssh {
         println!("Only one folder can be remote");
         return;
     }
 
-    let mut check_if_from_folders_exist =
-        add_ssh_cmd(from_folder, ssh_servers, &mut check_if_from_folders_exist);
-    check_if_from_folders_exist.push("ls".to_string());
-    check_if_from_folders_exist.push(from_path.clone());
+    let from_work_folder = if is_from_ssh {
+        let ssh_server =
+            crate::service::ssh::get(from_folder.ssh_key.clone().unwrap(), ssh_servers)
+                .expect("SSH Server not found");
+        &ssh_server.work_folder
+    } else {
+        work_folder
+    };
 
-    let mut create_empty_to_folders =
-        add_ssh_cmd(to_folder, ssh_servers, &mut create_empty_to_folders);
-    create_empty_to_folders.push("mkdir".to_string());
-    create_empty_to_folders.push("-p".to_string());
-    create_empty_to_folders.push(to_path.clone());
+    let to_work_folder = if is_to_ssh {
+        let ssh_server = crate::service::ssh::get(to_folder.ssh_key.clone().unwrap(), ssh_servers);
+        let ssh_server = ssh_server.expect("SSH Server not found");
+        &ssh_server.work_folder
+    } else {
+        work_folder
+    };
 
-    let mut remove_to_folders = add_ssh_cmd(to_folder, ssh_servers, &mut remove_to_folders);
-    remove_to_folders.push("rm".to_string());
-    remove_to_folders.push("-rf".to_string());
-    remove_to_folders.push(to_path.clone());
+    let (tar_name, tar_source_exists_args, create_tar_args, delete_from_tar_args) =
+        tar_directory(from_folder, from_work_folder);
+    let mut copy_to_folder: Vec<String> = Vec::new();
+    let (
+        verify_tar_args,
+        make_path_to_target_folder_args,
+        delete_target_folder_args,
+        untar_folder_args,
+        delete_to_tar_args,
+    ) = untar_directory(to_folder, to_work_folder, tar_name.clone());
 
     if is_from_ssh || is_to_ssh {
         let scp_cmd = scp_cmd(
             from_folder,
             to_folder,
-            from_path.clone(),
-            to_path.clone(),
+            tar_name.clone(),
+            from_work_folder,
+            to_work_folder,
             ssh_servers,
         );
         for cmd in scp_cmd.iter() {
@@ -110,11 +115,11 @@ pub fn sync(
         copy_to_folder.push(to_path.clone());
     };
 
-    let check_folder_arg = check_if_from_folders_exist
+    let check_folder_arg = tar_source_exists_args
         .first()
         .expect("First argument required");
     let mut check_folder_cmd = Command::new(check_folder_arg);
-    for folder_arg in &check_if_from_folders_exist[1..] {
+    for folder_arg in &tar_source_exists_args[1..] {
         check_folder_cmd.arg(folder_arg);
     }
     let check_folder_output = check_folder_cmd
@@ -128,9 +133,14 @@ pub fn sync(
         return;
     }
     println!("Ready for transfer, would you like to continue? The following commands will run");
-    println!("- {}", create_empty_to_folders.join(" "));
-    println!("- {}", remove_to_folders.join(" "));
+    println!("- {}", create_tar_args.join(" "));
+    println!("- {}", verify_tar_args.join(" "));
     println!("- {}", copy_to_folder.join(" "));
+    println!("- {}", make_path_to_target_folder_args.join(" "));
+    println!("- {}", delete_target_folder_args.join(" "));
+    println!("- {}", untar_folder_args.join(" "));
+    println!("- {}", delete_to_tar_args.join(" "));
+    println!("- {}", delete_from_tar_args.join(" "));
 
     if !force {
         println!("Enter y to continue!");
@@ -145,17 +155,34 @@ pub fn sync(
         }
     }
 
-    run_cmd(
-        create_empty_to_folders,
-        true,
-        "Failed to Create Folders".to_string(),
-    );
-    run_cmd(
-        remove_to_folders,
-        true,
-        "Failed to Remove Folders".to_string(),
-    );
+    run_cmd(create_tar_args, true, "Failed to Create Tar".to_string());
+    run_cmd(verify_tar_args, true, "Failed to Verify Tar".to_string());
     run_cmd(copy_to_folder, true, "Failed to Copy Files".to_string());
+    run_cmd(
+        make_path_to_target_folder_args,
+        true,
+        "Make Target Directories".to_string(),
+    );
+    run_cmd(
+        delete_target_folder_args,
+        true,
+        "Failed to Delete Target Folder".to_string(),
+    );
+    run_cmd(
+        untar_folder_args,
+        true,
+        "Failed to Untar Archive".to_string(),
+    );
+    run_cmd(
+        delete_to_tar_args,
+        true,
+        "Failed to Delete Target Tar".to_string(),
+    );
+    run_cmd(
+        delete_from_tar_args,
+        true,
+        "Failed to Delete From Tar".to_string(),
+    );
 }
 
 fn run_cmd(cmd_args: Vec<String>, print: bool, failure_msg: String) -> () {
