@@ -1,8 +1,11 @@
-use crate::model::{
-    folder::{Folder, FolderType},
-    ssh::SshServer,
-};
 use crate::service::ssh::{scp_cmd, ssh_cmd};
+use crate::{
+    model::{
+        folder::{Folder, FolderType},
+        ssh::SshServer,
+    },
+    service::ssh::add_ssh_cmd,
+};
 use std::process::{Command, Stdio};
 use std::{collections::HashMap, io};
 
@@ -22,16 +25,7 @@ pub fn ls(
     let path = build_path(folder, relative_path);
     println!("SSH - {:?} - {:?}", folder, path);
 
-    let mut cmd_args: Vec<String> = Vec::new();
-    match folder.target {
-        FolderType::Ssh => {
-            let ssh_cmd = ssh_cmd(folder, ssh_servers);
-            for cmd in ssh_cmd.iter() {
-                cmd_args.push(cmd.to_string());
-            }
-        }
-        _ => {}
-    }
+    let mut cmd_args = add_ssh_cmd(folder, ssh_servers, &mut Vec::new());
     cmd_args.push("ls".to_string());
     cmd_args.push("-l".to_string());
     cmd_args.push(path.clone());
@@ -76,6 +70,8 @@ pub fn sync(
         _ => false,
     };
 
+    let mut check_if_from_folders_exist =
+        add_ssh_cmd(from_folder, ssh_servers, &mut check_if_from_folders_exist);
     if is_from_ssh {
         let ssh_cmd = ssh_cmd(from_folder, ssh_servers);
         for cmd in ssh_cmd.iter() {
@@ -85,22 +81,13 @@ pub fn sync(
     check_if_from_folders_exist.push("ls".to_string());
     check_if_from_folders_exist.push(from_path.clone());
 
-    if is_to_ssh {
-        let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
-        for cmd in ssh_cmd.iter() {
-            create_empty_to_folders.push(cmd.to_string());
-        }
-    }
+    let mut create_empty_to_folders =
+        add_ssh_cmd(to_folder, ssh_servers, &mut create_empty_to_folders);
     create_empty_to_folders.push("mkdir".to_string());
     create_empty_to_folders.push("-p".to_string());
     create_empty_to_folders.push(to_path.clone());
 
-    if is_to_ssh {
-        let ssh_cmd = ssh_cmd(to_folder, ssh_servers);
-        for cmd in ssh_cmd.iter() {
-            remove_to_folders.push(cmd.to_string());
-        }
-    }
+    let mut remove_to_folders = add_ssh_cmd(to_folder, ssh_servers, &mut remove_to_folders);
     remove_to_folders.push("rm".to_string());
     remove_to_folders.push("-rf".to_string());
     remove_to_folders.push(to_path.clone());
@@ -192,7 +179,10 @@ pub fn sync(
         copy_to_folder_cmd.arg(folder_arg);
     }
     println!("{:?}", copy_to_folder_cmd);
-    let copy_to_folder_output = copy_to_folder_cmd.output().expect("Failed to Copy Files");
+    let copy_to_folder_output = copy_to_folder_cmd
+        .stdout(Stdio::inherit())
+        .output()
+        .expect("Failed to Copy Files");
     let copy_to_folder_output =
         String::from_utf8(copy_to_folder_output.stdout).expect("Error converting Stdout");
     println!("{:?}", copy_to_folder_output);

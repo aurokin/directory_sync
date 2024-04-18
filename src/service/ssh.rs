@@ -15,6 +15,23 @@ fn get(name: String, ssh_servers: &HashMap<String, SshServer>) -> Option<&SshSer
     return None;
 }
 
+pub fn add_ssh_cmd(
+    folder: &Folder,
+    ssh_servers: &HashMap<String, SshServer>,
+    cmd_args: &mut Vec<String>,
+) -> Vec<String> {
+    match folder.target {
+        FolderType::Ssh => {
+            let ssh_cmd = ssh_cmd(folder, ssh_servers);
+            for cmd in ssh_cmd.iter() {
+                cmd_args.push(cmd.to_string());
+            }
+            cmd_args.to_vec()
+        }
+        FolderType::Local => cmd_args.to_vec(),
+    }
+}
+
 pub fn ssh_cmd(folder: &Folder, ssh_servers: &HashMap<String, SshServer>) -> Vec<String> {
     let mut ssh_args: Vec<String> = Vec::new();
     let ssh_key = folder.ssh_key.clone().expect("No SSH Key Found");
