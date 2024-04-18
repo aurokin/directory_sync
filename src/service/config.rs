@@ -29,6 +29,7 @@ pub fn parse_config(
     HashMap<String, SshServer>,
     HashMap<String, Folder>,
     HashMap<String, Link>,
+    Folder,
 ) {
     let config: TomlConfig = toml::from_str(config.as_str()).expect("Error parsing config");
 
@@ -48,6 +49,10 @@ pub fn parse_config(
         };
         folders.insert(folder.name.clone(), folder);
     }
+    let work_folder = folders
+        .get(&config.local_work_dir)
+        .expect("Local work folder required")
+        .clone();
 
     let mut links: HashMap<String, Link> = HashMap::new();
     for toml_link in config.links {
@@ -67,5 +72,5 @@ pub fn parse_config(
             continue;
         }
     }
-    return (ssh_servers, folders, links);
+    return (ssh_servers, folders, links, work_folder);
 }
