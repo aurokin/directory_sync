@@ -152,38 +152,28 @@ pub fn sync(
     for folder_arg in &create_empty_to_folders[1..] {
         create_empty_folders_cmd.arg(folder_arg);
     }
-    let create_empty_folders_output = create_empty_folders_cmd
+    create_empty_folders_cmd
         .stdout(Stdio::piped())
         .output()
         .expect("Failed to Create Folders");
-    let create_empty_folders_output =
-        String::from_utf8(create_empty_folders_output.stdout).expect("Error converting Stdout");
-    println!("{:?}", create_empty_folders_output);
 
     let remove_folders_arg = remove_to_folders.first().expect("First argument required");
     let mut remove_folders_cmd = Command::new(remove_folders_arg);
     for folder_arg in &remove_to_folders[1..] {
         remove_folders_cmd.arg(folder_arg);
     }
-    let remove_folders_output = remove_folders_cmd
+    remove_folders_cmd
         .stdout(Stdio::piped())
         .output()
         .expect("Failed to Remove Folders");
-    let remove_folders_output =
-        String::from_utf8(remove_folders_output.stdout).expect("Error converting Stdout");
-    println!("{:?}", remove_folders_output);
 
     let copy_to_folder_arg = copy_to_folder.first().expect("First argument required");
     let mut copy_to_folder_cmd = Command::new(copy_to_folder_arg);
     for folder_arg in &copy_to_folder[1..] {
         copy_to_folder_cmd.arg(folder_arg);
     }
-    println!("{:?}", copy_to_folder_cmd);
-    let copy_to_folder_output = copy_to_folder_cmd
+    copy_to_folder_cmd
         .stdout(Stdio::inherit())
         .output()
         .expect("Failed to Copy Files");
-    let copy_to_folder_output =
-        String::from_utf8(copy_to_folder_output.stdout).expect("Error converting Stdout");
-    println!("{:?}", copy_to_folder_output);
 }
