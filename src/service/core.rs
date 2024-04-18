@@ -70,14 +70,13 @@ pub fn sync(
         _ => false,
     };
 
+    if is_from_ssh && is_to_ssh {
+        println!("Only one folder can be remote");
+        return;
+    }
+
     let mut check_if_from_folders_exist =
         add_ssh_cmd(from_folder, ssh_servers, &mut check_if_from_folders_exist);
-    if is_from_ssh {
-        let ssh_cmd = ssh_cmd(from_folder, ssh_servers);
-        for cmd in ssh_cmd.iter() {
-            check_if_from_folders_exist.push(cmd.to_string());
-        }
-    }
     check_if_from_folders_exist.push("ls".to_string());
     check_if_from_folders_exist.push(from_path.clone());
 
@@ -145,35 +144,27 @@ pub fn sync(
         }
     }
 
-    let create_empty_folders_arg = create_empty_to_folders
-        .first()
-        .expect("First argument required");
-    let mut create_empty_folders_cmd = Command::new(create_empty_folders_arg);
-    for folder_arg in &create_empty_to_folders[1..] {
-        create_empty_folders_cmd.arg(folder_arg);
-    }
-    create_empty_folders_cmd
-        .stdout(Stdio::piped())
-        .output()
-        .expect("Failed to Create Folders");
+    run_cmd(
+        create_empty_to_folders,
+        true,
+        "Failed to Create Folders".to_string(),
+    );
+    run_cmd(
+        remove_to_folders,
+        true,
+        "Failed to Remove Folders".to_string(),
+    );
+    run_cmd(copy_to_folder, true, "Failed to Copy Files".to_string());
+}
 
-    let remove_folders_arg = remove_to_folders.first().expect("First argument required");
-    let mut remove_folders_cmd = Command::new(remove_folders_arg);
-    for folder_arg in &remove_to_folders[1..] {
-        remove_folders_cmd.arg(folder_arg);
+fn run_cmd(cmd_args: Vec<String>, print: bool, failure_msg: String) -> () {
+    let first_arg = cmd_args.first().expect("First argument required");
+    let mut cmd = Command::new(first_arg);
+    for folder_arg in &cmd_args[1..] {
+        cmd.arg(folder_arg);
     }
-    remove_folders_cmd
-        .stdout(Stdio::piped())
-        .output()
-        .expect("Failed to Remove Folders");
-
-    let copy_to_folder_arg = copy_to_folder.first().expect("First argument required");
-    let mut copy_to_folder_cmd = Command::new(copy_to_folder_arg);
-    for folder_arg in &copy_to_folder[1..] {
-        copy_to_folder_cmd.arg(folder_arg);
+    if print {
+        cmd.stdout(Stdio::inherit());
     }
-    copy_to_folder_cmd
-        .stdout(Stdio::inherit())
-        .output()
-        .expect("Failed to Copy Files");
+    cmd.output().expect(&failure_msg);
 }
