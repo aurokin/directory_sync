@@ -26,6 +26,7 @@ fn main() {
     let args = Args::parse();
     let is_link = args.link;
     let is_force = args.force;
+
     match args.cmd {
         CliCmd::Ls(cmd_args) => ls(cmd_args, is_link, folders, links, ssh_servers),
         CliCmd::Pull(cmd_args) => pull(

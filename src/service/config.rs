@@ -72,6 +72,7 @@ pub fn parse_config(
                 local: local_folder.unwrap().clone(),
                 target: target_folder.unwrap().clone(),
                 paths: toml_link.1.paths,
+                partial_only: toml_link.1.partial_only.eq("true"),
             };
             links.insert(link.name.clone(), link);
         } else {

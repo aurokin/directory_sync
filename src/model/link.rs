@@ -6,4 +6,5 @@ pub struct Link {
     pub local: Folder,
     pub target: Folder,
     pub paths: Vec<String>,
+    pub partial_only: bool,
 }

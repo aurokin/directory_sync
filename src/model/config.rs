@@ -21,6 +21,7 @@ pub struct TomlLink {
     pub local: String,
     pub target: String,
     pub paths: Vec<String>,
+    pub partial_only: String,
 }
 
 #[derive(Deserialize, Debug)]

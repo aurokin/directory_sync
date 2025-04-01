@@ -63,6 +63,9 @@ pub fn pull(
                         is_force,
                     );
                 }
+            } else if link.partial_only {
+                println!("{} is partial only, ending task", link.name);
+                return;
             } else {
                 crate::service::core::sync(
                     &link.target,
@@ -120,6 +123,9 @@ pub fn push(
                         is_force,
                     );
                 }
+            } else if link.partial_only {
+                println!("{} is partial only, ending task", link.name);
+                return;
             } else {
                 crate::service::core::sync(
                     &link.local,
