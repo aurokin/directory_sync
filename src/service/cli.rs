@@ -63,7 +63,7 @@ pub fn pull(
                         is_force,
                     );
                 }
-            } else if link.partial_only {
+            } else if link.partial_only && !Option::is_some(&relative_path) {
                 println!("{} is partial only, ending task", link.name);
                 return;
             } else {
@@ -123,7 +123,7 @@ pub fn push(
                         is_force,
                     );
                 }
-            } else if link.partial_only {
+            } else if link.partial_only && !Option::is_some(&relative_path) {
                 println!("{} is partial only, ending task", link.name);
                 return;
             } else {
