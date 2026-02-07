@@ -16,6 +16,10 @@ Common tasks
 - Auto-format: `make fmt`
 - Build: `make build`
 
+Scripts
+- Local health checks: `scripts/health.sh` (runs `make check`)
+- Run dsync from source: `scripts/dev.sh <dsync args>`
+
 Current CLI status
 - `dsync init` works
 - `dsync doctor` loads/validates config (probes are planned)
