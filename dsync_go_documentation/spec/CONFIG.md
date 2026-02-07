@@ -35,6 +35,11 @@ Fields
 - `path` (string; absolute path on that machine)
 - `host` (string; required when `type="ssh"`; SSH config host alias)
 
+Validation rules (MVP)
+- `path` MUST be absolute.
+- `path` MUST NOT be `/`.
+- For `type="ssh"`, `host` MUST be set.
+
 Semantics
 - `path` is a directory root. dsync uses rsync "contents semantics": the effective rsync argument ends with `/`.
   - Example: `path = "/srv/photos"` means the rsync root is `/srv/photos/`.
@@ -53,10 +58,16 @@ Constraints
 - 1:1 only: one local endpoint and one remote endpoint.
 - Exactly one side must be `type="ssh"` in MVP.
 
+Validation rules (MVP)
+- `local` MUST refer to an endpoint with `type="local"`.
+- `remote` MUST refer to an endpoint with `type="ssh"`.
+- `paths[]` entries MUST be relative scopes and MUST NOT traverse outside the root (no `..`).
+
 Semantics
-- `paths` provides a default batch of scopes when no scope is provided by the user.
-- If a scope is provided (CLI `relative_path` or inferred from CWD), it overrides `paths` for that run.
-- When `partial_only=true`, full-root link operations require extra explicit intent (see `dsync_go_documentation/spec/BEHAVIORS.md`).
+- `paths` defines a preconfigured batch of scopes.
+- The batch is used only when the user explicitly opts in via `--use-link-paths`.
+- If a scope is provided (CLI `relative_path` or inferred from CWD), it takes precedence and dsync prints a mismatch notice with an alternate `--use-link-paths` command.
+- When `partial_only=true`, full-root link operations are forbidden (see `dsync_go_documentation/spec/BEHAVIORS.md`).
 
 ## Example config
 

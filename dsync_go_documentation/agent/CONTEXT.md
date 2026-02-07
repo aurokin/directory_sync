@@ -11,6 +11,9 @@ If you are an agent implementing dsync, read these files first:
 7) `dsync_go_documentation/design/SAFETY.md`
 8) `dsync_go_documentation/design/CLEAN.md`
 
+Implementation status
+- `dsync_go_documentation/STATUS.md`
+
 Implementation invariants (do not violate)
 - Rsync-only engine; no standalone `ssh` remote commands.
 - Always preview before apply, including when `--yes` is used.
@@ -24,3 +27,12 @@ Where to put work breakdown
 
 Legacy reference
 - The old Rust code is in `rust/`.
+
+Code map (current)
+- CLI entrypoint: `cmd/dsync/main.go`
+- Command routing: `internal/app/app.go`
+- pull/push planning + flag parsing: `internal/app/sync.go`
+- config discovery/parse/validate: `internal/config/config.go`
+- scope resolution: `internal/scope/scope.go`
+- rsync argv builder: `internal/rsync/sync.go`
+- XDG config paths: `internal/xdg/xdg.go`

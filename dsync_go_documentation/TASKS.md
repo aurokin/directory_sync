@@ -1,132 +1,125 @@
-# TASKS (Agent Work Breakdown)
+# TASKS (Implementation Plan)
 
-This file is for agents and humans coordinating implementation work.
+This file is the actionable plan for implementing `dsync`.
 
-Source of truth
-- Behavioral requirements: `dsync_go_documentation/spec/BEHAVIORS.md`
-- CLI contract: `dsync_go_documentation/spec/CLI.md`
-- Config: `dsync_go_documentation/spec/CONFIG.md`
-- rsync flags: `dsync_go_documentation/design/RSYNC.md`
-- Safety rules: `dsync_go_documentation/design/SAFETY.md`
-- Clean semantics: `dsync_go_documentation/design/CLEAN.md`
-- NDJSON events: `dsync_go_documentation/spec/JSON.md`
+Read first
+- `dsync_go_documentation/agent/CONTEXT.md`
+- `dsync_go_documentation/STATUS.md` (what is already implemented)
 
-## Phase 1: Project scaffold
-
-- [ ] Create new Go module for `dsync` (single binary)
-- [ ] Add basic command runner that execs `rsync` with argv (no shell)
-- [ ] Add `--help` output that documents guardrails and rsync-only contract
-
-Acceptance criteria
-- `dsync --help` exists and documents key flags and safety behavior.
-
-## Phase 2: Config + resolution
-
-- [ ] Implement config discovery: `$XDG_CONFIG_HOME/dsync/config.toml` then `~/.config/dsync/config.toml`
-- [ ] Parse TOML into in-memory structs; validate schema
-- [ ] Resolve endpoint roots and ensure trailing-slash contents semantics
-- [ ] Validate constraints: exactly one remote side for a link; no endpoint root of `/`
-
-References
-- `dsync_go_documentation/spec/CONFIG.md`
+Normative behavior
+- `dsync_go_documentation/spec/CLI.md`
 - `dsync_go_documentation/spec/BEHAVIORS.md`
-
-Acceptance criteria
-- Invalid configs fail with actionable errors.
-
-## Phase 3: Scope engine
-
-- [ ] Implement scope resolution rules (CLI -> CWD inference -> link paths -> empty)
-- [ ] Implement mismatch notice: scope overrides `paths` and print alternate commands
-- [ ] Implement full-root guardrail: require `--all` for apply
-
-References
-- `dsync_go_documentation/spec/BEHAVIORS.md`
-
-Acceptance criteria
-- Link-mode CWD inference works for the photos workflow.
-- Apply is refused without `--all` when scope is empty.
-
-## Phase 4: rsync command builder
-
-- [ ] Build canonical argv for preview/apply (mirror default)
-- [ ] Implement global + per-link excludes
-- [ ] Remote endpoints add `-e ssh` and host alias path form
-- [ ] Default compress OFF
-
-References
 - `dsync_go_documentation/design/RSYNC.md`
-
-Acceptance criteria
-- Preview argv and apply argv differ only by `--dry-run`.
-
-## Phase 5: Preview summary + prompts
-
-- [ ] Run preview (`--dry-run --itemize-changes --stats`) and capture output
-- [ ] Parse best-effort counts:
-  - `would_delete` from `*deleting` lines
-  - transfer counts/bytes from `--stats` where possible
-- [ ] Print direction banner, resolved roots, and summary; print samples (first N)
-- [ ] Implement interactive prompt and refusal in non-interactive mode unless `--yes`
-- [ ] `--yes` still runs preview and prints summary, then applies without prompt
-- [ ] `--dry-run` exits after preview (no prompt, no apply)
-
-References
-- `dsync_go_documentation/spec/BEHAVIORS.md`
 - `dsync_go_documentation/design/SAFETY.md`
 
-Acceptance criteria
-- Output makes it clear what would be deleted.
-- Non-interactive runs never block.
+Guiding rule
+- If behavior changes, update the spec docs in the same change set.
 
-## Phase 6: Commands
+## Implemented (do not redo)
 
-- [ ] `dsync init` writes a starter config template
-- [ ] `dsync ls` uses `rsync --list-only` (link mode lists both sides)
-- [ ] `dsync pull` and `dsync push` work in endpoint and link modes
-- [ ] `dsync doctor` validates prerequisites via harmless rsync probes
+- Go scaffold + CI + dev workflow
+  - `go.mod`, `Makefile`, `.golangci.yml`, `.github/workflows/ci.yml`
+- Config discovery + parse + validation
+  - `internal/config/config.go`, `internal/xdg/xdg.go`
+- Scope engine (including `--use-link-paths` override and conflicts)
+  - `internal/scope/scope.go`
+- Canonical rsync argv builder (preview/apply)
+  - `internal/rsync/sync.go`
+- pull/push planning output (prints SRC/DEST and argv)
+  - `internal/app/sync.go`
 
-References
-- `dsync_go_documentation/spec/CLI.md`
+## Next: Phase 5 (Run rsync + preview/apply UX)
 
-Acceptance criteria
-- Can pull/push a scoped subtree with clear preview/apply behavior.
+Goal
+- Make `pull`/`push` execute rsync safely and predictably.
 
-## Phase 7: NDJSON (`--json`)
+### 5.1 Run rsync (exec, streaming, and capture)
 
-- [ ] Implement `--json` mode:
-  - NDJSON events to stdout
-  - human logs to stderr
-- [ ] Emit events: `resolve`, `preview_done`, `prompt`, `apply_start`, `apply_done`, `note`
-
-References
-- `dsync_go_documentation/spec/JSON.md`
-
-Acceptance criteria
-- `--json` output is valid NDJSON and not interleaved with human logs.
-
-## Phase 8: clean
-
-- [ ] Implement local clean (delete `.dsync-partial/` dirs and contents)
-- [ ] Implement `--remote` clean using rsync-only deletion (filters + delete)
-- [ ] clean follows preview-before-apply, `--yes`, `--dry-run`, and `--json`
-
-References
-- `dsync_go_documentation/design/CLEAN.md`
+- Add a small runner that executes `rsync` with argv from `internal/rsync/sync.go`.
+- Support 2 output modes:
+  - default: capture output for parsing, print a concise summary
+  - `--verbose`: stream raw rsync output to stderr
 
 Acceptance criteria
-- Clean previews show deletions and never deletes non-`.dsync-partial` paths.
+- Exit code reflects rsync exit code.
+- No shell invocation.
 
-## Phase 9: Tests + CI
+### 5.2 Preview summary parsing
 
-- [ ] Unit tests for scope resolution and command building
-- [ ] Integration tests (Linux CI): local-local rsync
-- [ ] Integration tests (Linux CI): local-remote using sshd container + rsync
+- From preview output (`--dry-run`):
+  - `would_delete`: count `*deleting ` lines
+  - best-effort transfer counts/bytes: parse `--stats`
+- Print a clear summary:
+  - direction banner
+  - SRC and DEST
+  - mirror/deletes enabled
+  - exclude count (global + link)
+  - would delete / would transfer
+  - sample deletions + sample itemize lines (first N)
 
 Acceptance criteria
-- CI runs on PR and validates core invariants.
+- Output makes it hard to miss deletions.
 
-## Phase 10: Packaging
+### 5.3 Prompting and non-interactive guardrails
 
-- [ ] Add GoReleaser config to build macOS + Linux binaries
-- [ ] Document installation (copy binary into PATH)
+- Interactive mode:
+  - preview always runs first
+  - prompt "type y" to apply
+- Non-interactive mode:
+  - refuse apply unless `--yes` is set
+  - never block waiting for input
+- `--yes`:
+  - still runs preview and prints summary
+  - then applies without prompting
+- `--dry-run`:
+  - preview only, no prompt, no apply
+- Full-root apply:
+  - require `--all`
+
+Acceptance criteria
+- `--yes` works in scripts without hanging.
+- Full-root apply is refused without `--all`.
+
+## Phase 6 (Finish core commands)
+
+### 6.1 `doctor` probes
+
+- Keep config validation.
+- Add local rsync version check.
+- Add a harmless remote probe for ssh endpoints (rsync-over-ssh only).
+
+### 6.2 `ls`
+
+- Implement `rsync --list-only`.
+- Link mode lists both local and remote (labeled).
+
+### 6.3 Safety blocklist + `--dangerous`
+
+- Enforce high-risk destination blocklist from `dsync_go_documentation/design/SAFETY.md`.
+- Implement `--dangerous` override (should require `--yes`).
+
+## Phase 7 (`--json` NDJSON)
+
+- Emit NDJSON events per `dsync_go_documentation/spec/JSON.md`.
+- Ensure stdout is NDJSON-only; all human logs and raw rsync output go to stderr.
+
+## Phase 8 (`clean`)
+
+- Local clean: delete `.dsync-partial/` dirs and contents under the resolved local roots.
+- Remote clean: implement rsync-only deletion per `dsync_go_documentation/design/CLEAN.md`.
+- Preview-before-apply and all guardrails apply.
+
+## Phase 9 (Integration tests)
+
+- Add integration tests that run real rsync locally.
+- Add ssh-based integration tests using an sshd container that has rsync.
+- Test dangerous behaviors explicitly:
+  - mirror deletes within scope
+  - excludes protect files
+  - `--all` required for full-root apply
+  - `partial_only` forbids full-root
+
+## Phase 10 (Packaging)
+
+- Add GoReleaser to build macOS + Linux binaries.
+- Document install: copy `dsync` into a PATH directory.

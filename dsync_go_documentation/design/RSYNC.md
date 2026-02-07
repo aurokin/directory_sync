@@ -42,6 +42,7 @@ These are included in both preview and apply.
 - `--partial-dir=.dsync-partial`
 - `--human-readable`
 - `--stats`
+- `--itemize-changes`
 
 Remote-only addition
 - `-e ssh` (only when either side is `ssh`)
@@ -61,7 +62,9 @@ Note
 Preview phase adds:
 
 - `--dry-run`
-- `--itemize-changes`
+
+Note
+- dsync includes `--itemize-changes` in both preview and apply so that logging and parsing are consistent.
 
 ### Apply phase
 

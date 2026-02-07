@@ -35,14 +35,19 @@ Example
 
 Given an operation in link mode, dsync resolves a scope in this order:
 
+0) If `--use-link-paths` is set:
+   - dsync MUST ignore CWD inference.
+   - dsync MUST error if an explicit CLI `relative_path` argument is provided.
+   - dsync MUST error if `--all` is also set.
+   - dsync MUST error if the link has no configured `paths`.
+   - Otherwise, dsync uses the configured `paths=[...]` batch.
+
 1) Explicit CLI `relative_path` argument (if provided)
 2) CWD inference (if CWD is inside the link's local endpoint root)
-3) Link `paths=[...]` batch (only when no scope in steps 1-2 and `--use-link-paths` is not required)
-4) Empty scope (full-root)
+3) Empty scope (full-root)
 
 Rules
-- If a scope is resolved via steps 1 or 2, it MUST override link `paths` for that run.
-- When a scope overrides `paths`, dsync MUST print a mismatch notice and MUST print alternate commands:
+- If a scope is resolved via steps 1 or 2 and the link has configured `paths`, dsync MUST print a mismatch notice and MUST print alternate commands:
   - `--use-link-paths` (to run configured `paths`)
   - `--all` (to run full-root)
 
@@ -53,6 +58,15 @@ Rules
 - `--dry-run` MAY be allowed without `--all` (implementation choice), but the default is:
   - allow preview without `--all`
   - refuse apply without `--all`
+
+`--all` intent
+- In link mode, `--all` indicates explicit intent to operate on the full link root.
+
+## partial_only (links)
+
+- If a link has `partial_only=true`, dsync MUST forbid full-root operations on that link.
+- This prohibition applies to both preview and apply.
+- Users MUST provide a non-empty scope (CLI `relative_path` or CWD inference) or use `--use-link-paths`.
 
 Rationale
 - Full-root mirroring is often dangerous when run from the wrong directory or against the wrong endpoint.

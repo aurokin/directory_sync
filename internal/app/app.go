@@ -29,7 +29,13 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	switch cmd {
 	case "init":
 		return runInit(cmdArgs, stdout, stderr)
-	case "doctor", "ls", "pull", "push", "clean":
+	case "doctor":
+		return runDoctor(cmdArgs, stdout, stderr)
+	case "pull":
+		return runPull(cmdArgs, stdout, stderr)
+	case "push":
+		return runPush(cmdArgs, stdout, stderr)
+	case "ls", "clean":
 		fmt.Fprintf(stderr, "%s: not implemented yet\n", cmd)
 		fmt.Fprintf(stderr, "See dsync_go_documentation/TASKS.md\n")
 		return 2

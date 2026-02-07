@@ -15,3 +15,8 @@ Common tasks
 - Run format check + lint + tests: `make check`
 - Auto-format: `make fmt`
 - Build: `make build`
+
+Current CLI status
+- `dsync init` works
+- `dsync doctor` loads/validates config (probes are planned)
+- `dsync pull` / `dsync push` print rsync plans; execution is Phase 5

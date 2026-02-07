@@ -21,6 +21,7 @@ Quick navigation
 - Safety model and guardrails: `dsync_go_documentation/design/SAFETY.md`
 - Agent execution plan / work breakdown: `dsync_go_documentation/TASKS.md`
 - Minimal context for agents: `dsync_go_documentation/agent/CONTEXT.md`
+- Current implementation status: `dsync_go_documentation/STATUS.md`
 
 Core decisions (locked for MVP)
 - Name: `dsync`
@@ -35,3 +36,6 @@ Core decisions (locked for MVP)
 - Non-interactive mode requires `--yes` (and `--all` when needed)
 - Output: concise by default; `--verbose` streams full rsync output
 - Agents: `--json` outputs NDJSON events on stdout; human text goes to stderr
+
+Implementation note
+- The Go rewrite lives at the repo root; the original Rust project is under `rust/`.

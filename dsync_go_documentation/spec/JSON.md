@@ -23,7 +23,7 @@ Many events SHOULD include:
 - `scope_source` (string; `cli`, `cwd`, `link_paths`, `empty`)
 - `source` (string; resolved rsync SRC, with trailing `/` when applicable)
 - `dest` (string; resolved rsync DEST, with trailing `/` when applicable)
-- `argv` (array of string; the exact rsync argv, excluding secrets)
+- `argv` (array of string; rsync arguments excluding the program name)
 
 ## Event types
 
@@ -82,7 +82,7 @@ Additional fields
 ## Example output
 
 ```json
-{"type":"resolve","ts":"2026-02-07T12:00:00Z","cmd":"pull","mode":"link","name":"photos","scope":"2026/portraits","scope_source":"cwd","source":"photo-box:/srv/photos/2026/portraits/","dest":"/Users/you/photos/2026/portraits/","mirror":true,"deletes_enabled":true,"excludes_count":4,"argv":["rsync","-a","--no-owner","--no-group","--mkpath","--protect-args","--partial","--partial-dir=.dsync-partial","--delete","--delete-delay","--dry-run","--itemize-changes","--human-readable","--stats","-e","ssh","photo-box:/srv/photos/2026/portraits/","/Users/you/photos/2026/portraits/"],"batch":{"enabled":false,"paths":[]}}
+{"type":"resolve","ts":"2026-02-07T12:00:00Z","cmd":"pull","mode":"link","name":"photos","scope":"2026/portraits","scope_source":"cwd","source":"photo-box:/srv/photos/2026/portraits/","dest":"/Users/you/photos/2026/portraits/","mirror":true,"deletes_enabled":true,"excludes_count":4,"argv":["-a","--no-owner","--no-group","--mkpath","--protect-args","--partial","--partial-dir=.dsync-partial","--human-readable","--stats","--itemize-changes","--delete","--delete-delay","-e","ssh","--dry-run","photo-box:/srv/photos/2026/portraits/","/Users/you/photos/2026/portraits/"],"batch":{"enabled":false,"paths":[]}}
 {"type":"preview_done","ts":"2026-02-07T12:00:01Z","cmd":"pull","exit_code":0,"would_delete":3,"would_transfer_files":12,"would_transfer_bytes":10485760}
 {"type":"prompt","ts":"2026-02-07T12:00:01Z","cmd":"pull","message":"Type y to apply"}
 {"type":"apply_start","ts":"2026-02-07T12:00:02Z","cmd":"pull","yes":false}
@@ -92,3 +92,7 @@ Additional fields
 Notes
 - The argv array must contain real arguments. Do not include placeholder control characters (the example uses `...` only as shorthand).
 - dsync should avoid emitting sensitive data (e.g., if later adding credentials for other backends).
+
+argv convention
+- dsync runs `rsync` from PATH.
+- `argv` contains the arguments passed to `rsync` (i.e., excludes the program name).

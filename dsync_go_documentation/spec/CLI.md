@@ -8,6 +8,12 @@ This document defines the `dsync` CLI interface for MVP.
 - "link mode": `dsync <cmd> --link <link>` syncs between the link's endpoints.
 - `relative_path` is always a scope that applies to BOTH source and destination roots.
 
+Argument parsing (MVP)
+- For `pull` and `push`, flags MAY be interspersed with positionals.
+  - Example: `dsync pull photos --dry-run` is valid.
+- Use `--` to stop flag parsing if a scope begins with `-`.
+  - Example: `dsync pull --link photos -- --weird-scope`
+
 All mutating commands follow two-phase behavior:
 - Preview (dry-run) and summary output always run first.
 - Apply runs after a prompt, unless `--yes` is provided.
@@ -64,7 +70,7 @@ Flags
 - `--dry-run`: preview only, no prompt, no apply
 - `--all`: allow full-root operations when scope is empty
 - `--dangerous`: override high-risk destination blocklist checks (see `dsync_go_documentation/design/SAFETY.md`)
-- `--use-link-paths`: when link has `paths=[...]`, run the configured batch (ignored if a scope is provided)
+- `--use-link-paths`: run the configured link `paths=[...]` batch; overrides CWD scope inference and conflicts with an explicit `relative_path` or `--all`
 - `--json`
 - `--verbose`
 

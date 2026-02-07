@@ -16,10 +16,10 @@ Usage:
 
 Commands:
   init      Create starter config at $XDG_CONFIG_HOME/dsync/config.toml
-  doctor    Validate config and prerequisites (planned)
+  doctor    Validate config (MVP)
+  pull      Plan sync scope and guardrails (rsync execution not implemented yet)
+  push      Plan sync scope and guardrails (rsync execution not implemented yet)
   ls        List directory via rsync --list-only (planned)
-  pull      Sync remote -> local (planned)
-  push      Sync local -> remote (planned)
   clean     Remove .dsync-partial directories (planned)
 
 Global flags:
